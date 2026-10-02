@@ -1,30 +1,49 @@
 
 import { useState, useRef } from 'react'
 import './App.css'
+import imageCompression from 'browser-image-compression'
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
   const fileInputRef = useRef(null)
+  const [photoSizes, setPhotoSizes] = useState(null)
 
-  function handlePhotoChange(event) {
+async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
   if (!file) return
 
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
 
-if (!allowedTypes.includes(file.type)) {
-  alert('Elegí una imagen JPG, PNG o WebP.')
-  event.target.value = ''
-  return
-}
-
-  const reader = new FileReader()
-
-  reader.onload = () => {
-    setPhotoPreview(reader.result)
+  if (!allowedTypes.includes(file.type)) {
+    alert('Elegí una imagen JPG, PNG o WebP.')
+    event.target.value = ''
+    return
   }
 
-  reader.readAsDataURL(file)
+  try {
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 800000 / (1024 * 1024),
+      maxWidthOrHeight: 1600,
+      useWebWorker: false,
+    })
+
+    if (compressedFile.size > 800000) {
+      alert('No pudimos reducir esta foto a 800 KB. Probá con otra.')
+      return
+    }
+
+    const preview = await imageCompression.getDataUrlFromFile(
+      compressedFile
+    )
+    setPhotoSizes({
+       original: Math.round(file.size / 1000),
+       compressed: Math.round(compressedFile.size / 1000),
+})
+
+    setPhotoPreview(preview)
+  } catch {
+    alert('No pudimos procesar la foto. Probá con otra imagen.')
+  }
 }
   return (
     <main>
@@ -73,11 +92,17 @@ if (!allowedTypes.includes(file.type)) {
         borderRadius: '12px',
       }}
     />
+    {photoSizes && (
+  <p>
+    Original: {photoSizes.original} KB · Comprimida: {photoSizes.compressed} KB
+  </p>
+)}
 
     <button
       type="button"
       onClick={() => {
         setPhotoPreview(null)
+        setPhotoSizes(null)
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
         }
