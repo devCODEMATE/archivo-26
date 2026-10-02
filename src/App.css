@@ -52,3 +52,12 @@ main > section:first-of-type button:last-of-type {
 main > section:last-of-type {
   margin-top: 32px;
 }
+
+header img {
+  display: block;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  object-fit: cover;
+}
