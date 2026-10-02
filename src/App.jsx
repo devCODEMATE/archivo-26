@@ -7,6 +7,7 @@ function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
   const fileInputRef = useRef(null)
   const [photoSizes, setPhotoSizes] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
 async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
@@ -19,7 +20,7 @@ async function handlePhotoChange(event) {
     event.target.value = ''
     return
   }
-
+setIsProcessing(true)
   try {
     const compressedFile = await imageCompression(file, {
       maxSizeMB: 800000 / (1024 * 1024),
@@ -41,9 +42,11 @@ async function handlePhotoChange(event) {
 })
 
     setPhotoPreview(preview)
-  } catch {
-    alert('No pudimos procesar la foto. Probá con otra imagen.')
-  }
+} catch {
+  alert('No pudimos procesar la foto. Probá con otra imagen.')
+} finally {
+  setIsProcessing(false)
+}
 }
   return (
     <main>
@@ -73,9 +76,10 @@ async function handlePhotoChange(event) {
 
 <button
   type="button"
+  disabled={isProcessing}
   onClick={() => fileInputRef.current?.click()}
 >
-  Subir foto
+  {isProcessing ? 'Procesando foto…' : 'Subir foto'}
 </button>
 
 {photoPreview && (
@@ -98,18 +102,20 @@ async function handlePhotoChange(event) {
   </p>
 )}
 
-    <button
-      type="button"
-      onClick={() => {
-        setPhotoPreview(null)
-        setPhotoSizes(null)
-        if (fileInputRef.current) {
-          fileInputRef.current.value = ''
-        }
-      }}
-    >
-      Quitar foto
-    </button>
+<button
+  type="button"
+  disabled={isProcessing}
+  onClick={() => {
+    setPhotoPreview(null)
+    setPhotoSizes(null)
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }}
+>
+  Quitar foto
+</button>
   </div>
 )}
 
