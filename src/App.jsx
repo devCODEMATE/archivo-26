@@ -10,6 +10,14 @@ function App() {
   const file = event.target.files?.[0]
   if (!file) return
 
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+
+if (!allowedTypes.includes(file.type)) {
+  alert('Elegí una imagen JPG, PNG o WebP.')
+  event.target.value = ''
+  return
+}
+
   const reader = new FileReader()
 
   reader.onload = () => {
@@ -52,18 +60,32 @@ function App() {
 </button>
 
 {photoPreview && (
-  <img
-    src={photoPreview}
-    alt="Vista previa de la foto seleccionada"
-    style={{
-      display: 'block',
-      width: '100%',
-      maxHeight: '320px',
-      objectFit: 'contain',
-      marginTop: '16px',
-      borderRadius: '12px',
-    }}
-  />
+  <div>
+    <img
+      src={photoPreview}
+      alt="Vista previa de la foto seleccionada"
+      style={{
+        display: 'block',
+        width: '100%',
+        maxHeight: '320px',
+        objectFit: 'contain',
+        marginTop: '16px',
+        borderRadius: '12px',
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={() => {
+        setPhotoPreview(null)
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''
+        }
+      }}
+    >
+      Quitar foto
+    </button>
+  </div>
 )}
 
 <button type="button">Crear mi fotolibro</button>
