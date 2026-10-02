@@ -8,6 +8,7 @@ function App() {
   const fileInputRef = useRef(null)
   const [photoSizes, setPhotoSizes] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [photoCaption, setPhotoCaption] = useState('')
 
 async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
@@ -96,6 +97,19 @@ setIsProcessing(true)
         borderRadius: '12px',
       }}
     />
+    <label htmlFor="photo-caption">Descripción de la foto</label>
+<input
+  id="photo-caption"
+  type="text"
+  value={photoCaption}
+  onChange={(event) => setPhotoCaption(event.target.value)}
+  maxLength={150}
+  placeholder="Por ejemplo: Último primer día"
+  disabled={isProcessing}
+/>
+  <p className="caption-counter">
+  {photoCaption.length}/150 caracteres
+</p>
     {photoSizes && (
   <p>
     Original: {photoSizes.original} KB · Comprimida: {photoSizes.compressed} KB
@@ -108,6 +122,7 @@ setIsProcessing(true)
   onClick={() => {
     setPhotoPreview(null)
     setPhotoSizes(null)
+    setPhotoCaption('')
 
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
