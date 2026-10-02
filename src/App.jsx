@@ -184,7 +184,18 @@ function handleAddMemory() {
         {memory.caption && (
           <figcaption>{memory.caption}</figcaption>
         )}
+        <button
+  type="button"
+  onClick={() => {
+    setMemories((previous) =>
+      previous.filter((item) => item.id !== memory.id)
+    )
+  }}
+>
+  Quitar recuerdo
+</button>
       </figure>
+      
     ))
   )}
 </section>
