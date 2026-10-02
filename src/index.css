@@ -1,5 +1,5 @@
 :root {
-  font-family: Arial, sans-serif;
+  font-family: 'Manrope', sans-serif;
   color: #181313;
   background-color: #f5ebdd;
   font-synthesis: none;
@@ -39,4 +39,11 @@ button {
 button:focus-visible {
   outline: 3px solid #a51e26;
   outline-offset: 3px;
+}
+
+header h1 {
+  font-family: 'UnifrakturMaguntia', serif;
+  font-weight: 400;
+  color: #a51e26;
+  line-height: 1.2;
 }

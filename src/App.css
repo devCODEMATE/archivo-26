@@ -61,3 +61,16 @@ header img {
   border-radius: 50%;
   object-fit: cover;
 }
+
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: clamp(48px, 10vw, 68px);
+  color: #a51e26;
+  line-height: 1.1;
+}
+
+main > section:first-of-type h2 {
+  font-family: 'UnifrakturCook', serif;
+  font-weight: 700;
+}
