@@ -1,6 +1,23 @@
+
+import { useState, useRef } from 'react'
 import './App.css'
 
 function App() {
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const fileInputRef = useRef(null)
+
+  function handlePhotoChange(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+
+  reader.onload = () => {
+    setPhotoPreview(reader.result)
+  }
+
+  reader.readAsDataURL(file)
+}
   return (
     <main>
    <header>
@@ -19,8 +36,37 @@ function App() {
         <h2>Nuestro último año, en un solo lugar.</h2>
         <p>Guardemos los momentos que queremos recordar.</p>
 
-        <button type="button">Subir foto</button>
-        <button type="button">Crear mi fotolibro</button>
+        <input
+  ref={fileInputRef}
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  hidden
+  onChange={handlePhotoChange}
+/>
+
+<button
+  type="button"
+  onClick={() => fileInputRef.current?.click()}
+>
+  Subir foto
+</button>
+
+{photoPreview && (
+  <img
+    src={photoPreview}
+    alt="Vista previa de la foto seleccionada"
+    style={{
+      display: 'block',
+      width: '100%',
+      maxHeight: '320px',
+      objectFit: 'contain',
+      marginTop: '16px',
+      borderRadius: '12px',
+    }}
+  />
+)}
+
+<button type="button">Crear mi fotolibro</button>
       </section>
 
       <section>
