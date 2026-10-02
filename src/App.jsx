@@ -9,6 +9,7 @@ function App() {
   const [photoSizes, setPhotoSizes] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [photoCaption, setPhotoCaption] = useState('')
+  const [memories, setMemories] = useState([])
 
 async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
@@ -48,6 +49,25 @@ setIsProcessing(true)
 } finally {
   setIsProcessing(false)
 }
+}
+
+function handleAddMemory() {
+  if (!photoPreview || isProcessing) return
+
+  const memory = {
+    id: crypto.randomUUID(),
+    image: photoPreview,
+    caption: photoCaption.trim(),
+  }
+
+  setMemories((previous) => [memory, ...previous])
+  setPhotoPreview(null)
+  setPhotoSizes(null)
+  setPhotoCaption('')
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = ''
+  }
 }
   return (
     <main>
@@ -115,7 +135,13 @@ setIsProcessing(true)
     Original: {photoSizes.original} KB · Comprimida: {photoSizes.compressed} KB
   </p>
 )}
-
+<button
+  type="button"
+  disabled={isProcessing}
+  onClick={handleAddMemory}
+>
+  Agregar a recuerdos
+</button>
 <button
   type="button"
   disabled={isProcessing}
@@ -137,10 +163,31 @@ setIsProcessing(true)
 <button type="button">Crear mi fotolibro</button>
       </section>
 
-      <section>
-        <h2>Últimos recuerdos</h2>
-        <p>Acá aparecerán las fotos de nuestra promo.</p>
-      </section>
+<section>
+  <h2>Últimos recuerdos</h2>
+
+  {memories.length === 0 ? (
+    <p>Acá aparecerán las fotos de nuestra promo.</p>
+  ) : (
+    memories.map((memory) => (
+      <figure key={memory.id}>
+        <img
+          src={memory.image}
+          alt={memory.caption || 'Recuerdo de la promo'}
+          style={{
+            width: '100%',
+            maxHeight: '320px',
+            objectFit: 'contain',
+            borderRadius: '12px',
+          }}
+        />
+        {memory.caption && (
+          <figcaption>{memory.caption}</figcaption>
+        )}
+      </figure>
+    ))
+  )}
+</section>
     </main>
   )
 }
