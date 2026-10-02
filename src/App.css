@@ -1,0 +1,54 @@
+#root {
+  width: 100%;
+}
+
+main {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+header {
+  margin-bottom: 24px;
+}
+
+header h1 {
+  margin: 8px 0;
+  font-size: clamp(36px, 8vw, 56px);
+}
+
+header p {
+  margin: 8px 0;
+}
+
+main > section:first-of-type {
+  padding: 32px 24px;
+  border-radius: 20px;
+  background-color: #300405;
+  color: #f5ebdd;
+}
+
+main > section:first-of-type h2 {
+  margin-top: 0;
+  color: #f5ebdd;
+  font-size: clamp(26px, 5vw, 36px);
+  line-height: 1.2;
+}
+
+main > section:first-of-type button {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  background-color: #a51e26;
+  border-color: #a51e26;
+}
+
+main > section:first-of-type button:last-of-type {
+  background-color: #f5ebdd;
+  border-color: #f5ebdd;
+  color: #300405;
+}
+
+main > section:last-of-type {
+  margin-top: 32px;
+}
