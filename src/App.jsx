@@ -10,6 +10,8 @@ function App() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [photoCaption, setPhotoCaption] = useState('')
   const [memories, setMemories] = useState([])
+  const [showPhotoBook, setShowPhotoBook] = useState(false)
+  const [selectedMemoryIds, setSelectedMemoryIds] = useState([])
 
 async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
@@ -160,7 +162,16 @@ function handleAddMemory() {
   </div>
 )}
 
-<button type="button">Crear mi fotolibro</button>
+<button
+  type="button"
+  disabled={
+  !memories.some((memory) => selectedMemoryIds.includes(memory.id)) ||
+  isProcessing
+}
+  onClick={() => setShowPhotoBook(true)}
+>
+  Crear mi fotolibro
+</button>
       </section>
 
 <section>
@@ -184,12 +195,31 @@ function handleAddMemory() {
         {memory.caption && (
           <figcaption>{memory.caption}</figcaption>
         )}
+        <label>
+  <input
+    type="checkbox"
+    checked={selectedMemoryIds.includes(memory.id)}
+    onChange={(event) => {
+      const checked = event.target.checked
+
+      setSelectedMemoryIds((previous) =>
+        checked
+          ? [...previous, memory.id]
+          : previous.filter((id) => id !== memory.id)
+      )
+    }}
+  />
+  Incluir en mi fotolibro
+</label>
         <button
   type="button"
   onClick={() => {
     setMemories((previous) =>
       previous.filter((item) => item.id !== memory.id)
     )
+    setSelectedMemoryIds((previous) =>
+  previous.filter((id) => id !== memory.id)
+)
   }}
 >
   Quitar recuerdo
@@ -199,6 +229,39 @@ function handleAddMemory() {
     ))
   )}
 </section>
+  {showPhotoBook && (
+  <section className="photobook">
+    <h2>Mi fotolibro</h2>
+    <p>Archivo 26 · Nuestra promo</p>
+
+   {memories
+  .filter((memory) => selectedMemoryIds.includes(memory.id))
+  .map((memory) => (
+      <figure key={memory.id}>
+        <img
+          src={memory.image}
+          alt={memory.caption || 'Recuerdo de la promo'}
+          style={{
+            display: 'block',
+            width: '100%',
+            maxHeight: '400px',
+            objectFit: 'contain',
+          }}
+        />
+        {memory.caption && (
+          <figcaption>{memory.caption}</figcaption>
+        )}
+      </figure>
+    ))}
+
+    <button
+      type="button"
+      onClick={() => setShowPhotoBook(false)}
+    >
+      Cerrar vista del fotolibro
+    </button>
+  </section>
+)}
     </main>
   )
 }
