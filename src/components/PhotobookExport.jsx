@@ -12,7 +12,7 @@ function PhotobookExport({
     return (
       <div className="page-stickers">
         {(pageStickers[pageId] || []).map((sticker) => {
-          const size = sticker.src ? 100 : 48
+          const size = sticker.size ?? (sticker.src ? 100 : 48)
 
           return (
             <span

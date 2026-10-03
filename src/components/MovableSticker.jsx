@@ -2,8 +2,7 @@ import { useRef } from 'react'
 
 function MovableSticker({ sticker, onMove, onSelect, selected }) {
   const dragRef = useRef(null)
-  const size = sticker.src ? 100 : 48
-
+const size = sticker.size ?? (sticker.src ? 100 : 48)
   function handlePointerDown(event) {
     if (event.button !== 0) return
 

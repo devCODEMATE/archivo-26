@@ -160,3 +160,29 @@ label[for="book-format"] {
   outline: 2px solid #300405;
   outline-offset: 3px;
 }
+
+.sticker-size-control {
+  margin: 20px 0;
+  padding: 16px;
+  border: 1px solid #dfcbb5;
+  border-radius: 12px;
+  background-color: #fff8ee;
+  color: #300405;
+}
+
+.sticker-size-control label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.sticker-size-control input {
+  display: block;
+  width: 100%;
+  accent-color: #a51e26;
+}
+
+.sticker-size-control p {
+  margin: 12px 0 0;
+  font-size: 13px;
+}

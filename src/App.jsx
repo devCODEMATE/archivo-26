@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
+import { flushSync } from 'react-dom'
 import imageCompression from 'browser-image-compression'
 import './App.css'
+
 import MovableSticker from './components/MovableSticker'
-import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
-import { flushSync } from 'react-dom'
-import PhotobookExport from './components/PhotobookExport'
-import { exportPhotobook } from './utils/exportPhotobook'
 import PhotobookCover from './components/PhotobookCover'
-import {
-  stickerCatalog,
-  stickerCategories,
-} from './stickers/catalog'
+import PhotobookExport from './components/PhotobookExport'
+import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
+import { exportPhotobook } from './utils/exportPhotobook'
+import { stickerCatalog, stickerCategories } from './stickers/catalog'
 
 const availableStickers = [
   ...stickerCatalog,
@@ -30,18 +28,20 @@ function App() {
   const [photoBookPage, setPhotoBookPage] = useState(0)
   const [pageStickers, setPageStickers] = useState({})
   const [bookFormat, setBookFormat] = useState('A4')
-  const fileInputRef = useRef(null)
   const [selectedStickerId, setSelectedStickerId] = useState(null)
+  const [stickerCategory, setStickerCategory] = useState('promo')
   const [isStorageReady, setIsStorageReady] = useState(false)
   const [storageError, setStorageError] = useState('')
-  const saveQueueRef = useRef(Promise.resolve())
   const [isExporting, setIsExporting] = useState(false)
   const [exportPageWidth, setExportPageWidth] = useState(680)
+  const [coverNote, setCoverNote] = useState(
+    'Nuestro último año, en recuerdos.'
+  )
+
+  const fileInputRef = useRef(null)
+  const saveQueueRef = useRef(Promise.resolve())
   const exportRef = useRef(null)
   const photobookRef = useRef(null)
-  const [coverNote, setCoverNote] = useState(
-  'Nuestro último año, en recuerdos.'
-)
 
   const selectedMemories = memories.filter((memory) =>
     selectedMemoryIds.includes(memory.id)
@@ -49,104 +49,111 @@ function App() {
 
   const currentPage = Math.min(photoBookPage, selectedMemories.length)
   const currentMemory = selectedMemories[currentPage - 1]
+
   const currentStickerPageId =
-  currentPage === 0 ? 'cover' : currentMemory?.id
+    currentPage === 0 ? 'cover' : currentMemory?.id
+
   const activeStickerCategory = stickerCategories.find(
-  (category) => category.id === stickerCategory
-)
-
-const visibleStickers = availableStickers.filter((sticker) =>
-  activeStickerCategory?.stickerIds.includes(sticker.id)
-)
-  const [stickerCategory, setStickerCategory] = useState('promo')
-
-useEffect(() => {
-  let cancelled = false
-
-  async function restorePhotobook() {
-    try {
-      const saved = await loadPhotobook()
-
-      if (cancelled) return
-
-      if (saved) {
-        setMemories(saved.memories ?? [])
-        setSelectedMemoryIds(saved.selectedMemoryIds ?? [])
-        setPageStickers(saved.pageStickers ?? {})
-        setBookFormat(saved.bookFormat ?? 'A4')
-        setCoverNote(
-  saved.coverNote ?? 'Nuestro último año, en recuerdos.'
-)
-      }
-
-      setIsStorageReady(true)
-    } catch {
-      if (!cancelled) {
-        setStorageError(
-          'No pudimos recuperar el fotolibro. Probá recargando la página.'
-        )
-      }
-    }
-  }
-
-  restorePhotobook()
-
-  return () => {
-    cancelled = true
-  }
-}, [])
-async function handleDownloadPhotobook() {
-  if (isExporting || selectedMemories.length === 0) return
-
-  const page = photobookRef.current?.querySelector(
-    '.photobook-cover, .photobook-page'
+    (category) => category.id === stickerCategory
   )
 
-  try {
-    flushSync(() => {
-      setExportPageWidth(page?.getBoundingClientRect().width || 680)
-      setIsExporting(true)
-    })
+  const visibleStickers = availableStickers.filter((sticker) =>
+    activeStickerCategory?.stickerIds.includes(sticker.id)
+  )
 
-    await exportPhotobook(exportRef.current, bookFormat)
-  } catch (error) {
-    console.error('Error al exportar el fotolibro:', error)
-    alert('No pudimos generar el PDF. Probá nuevamente.')
-  } finally {
-    setIsExporting(false)
-  }
-}
-useEffect(() => {
-  if (!isStorageReady) return
+  const activeSticker = (
+    pageStickers[currentStickerPageId] || []
+  ).find((sticker) => sticker.id === selectedStickerId)
 
-  const timer = setTimeout(() => {
-    const draft = {
-     memories,
-     selectedMemoryIds,
-     pageStickers,
-     bookFormat,
-     coverNote,
+  useEffect(() => {
+    let cancelled = false
+
+    async function restorePhotobook() {
+      try {
+        const saved = await loadPhotobook()
+
+        if (cancelled) return
+
+        if (saved) {
+          setMemories(saved.memories ?? [])
+          setSelectedMemoryIds(saved.selectedMemoryIds ?? [])
+          setPageStickers(saved.pageStickers ?? {})
+          setBookFormat(saved.bookFormat ?? 'A4')
+          setCoverNote(
+            saved.coverNote ?? 'Nuestro último año, en recuerdos.'
+          )
+        }
+
+        setIsStorageReady(true)
+      } catch {
+        if (!cancelled) {
+          setStorageError(
+            'No pudimos recuperar el fotolibro. Probá recargando la página.'
+          )
+        }
+      }
     }
 
-    saveQueueRef.current = saveQueueRef.current
-      .then(() => savePhotobook(draft))
-      .then(() => setStorageError(''))
-      .catch(() => {
-        setStorageError(
-          'No pudimos guardar los cambios en este navegador.'
-        )
-      })
-  }, 400)
+    restorePhotobook()
 
-  return () => clearTimeout(timer)
-}, [
-  isStorageReady,
-  memories,
-  selectedMemoryIds,
-  pageStickers,
-  bookFormat,
-  coverNote,
-])
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!isStorageReady) return
+
+    const timer = setTimeout(() => {
+      const draft = {
+        memories,
+        selectedMemoryIds,
+        pageStickers,
+        bookFormat,
+        coverNote,
+      }
+
+      saveQueueRef.current = saveQueueRef.current
+        .then(() => savePhotobook(draft))
+        .then(() => setStorageError(''))
+        .catch(() => {
+          setStorageError(
+            'No pudimos guardar los cambios en este navegador.'
+          )
+        })
+    }, 400)
+
+    return () => clearTimeout(timer)
+  }, [
+    isStorageReady,
+    memories,
+    selectedMemoryIds,
+    pageStickers,
+    bookFormat,
+    coverNote,
+  ])
+
+  async function handleDownloadPhotobook() {
+    if (isExporting || selectedMemories.length === 0) return
+
+    const page = photobookRef.current?.querySelector(
+      '.photobook-cover, .photobook-page'
+    )
+
+    try {
+      flushSync(() => {
+        setExportPageWidth(page?.getBoundingClientRect().width || 680)
+        setIsExporting(true)
+      })
+
+      await exportPhotobook(exportRef.current, bookFormat)
+    } catch (error) {
+      console.error('Error al exportar el fotolibro:', error)
+      alert('No pudimos generar el PDF. Probá nuevamente.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   function clearPhotoSelection() {
     setPhotoPreview(null)
@@ -237,54 +244,74 @@ useEffect(() => {
     )
   }
 
-function handleAddSticker(option) {
-  if (!currentStickerPageId) return
+  function handleAddSticker(option) {
+    if (!currentStickerPageId) return
 
-  const pageId = currentStickerPageId
-  const sticker = {
-    id: crypto.randomUUID(),
-    label: option.label,
-    src: option.src,
-    symbol: option.symbol,
-    x: 10,
-    y: 10,
+    const pageId = currentStickerPageId
+
+    const sticker = {
+      id: crypto.randomUUID(),
+      label: option.label,
+      src: option.src,
+      symbol: option.symbol,
+      x: 10,
+      y: 10,
+    }
+
+    setPageStickers((previous) => {
+      const stickers = previous[pageId] || []
+      if (stickers.length >= 10) return previous
+
+      return {
+        ...previous,
+        [pageId]: [...stickers, sticker],
+      }
+    })
+
+    setSelectedStickerId(sticker.id)
   }
 
-  setPageStickers((previous) => {
-    const stickers = previous[pageId] || []
-    if (stickers.length >= 10) return previous
+  function handleStickerSizeChange(size) {
+    if (!currentStickerPageId || !selectedStickerId) return
 
-    return {
+    const pageId = currentStickerPageId
+    const nextSize = Math.min(180, Math.max(40, size))
+
+    setPageStickers((previous) => ({
       ...previous,
-      [pageId]: [...stickers, sticker],
-    }
-  })
+      [pageId]: (previous[pageId] || []).map((sticker) =>
+        sticker.id === selectedStickerId
+          ? { ...sticker, size: nextSize }
+          : sticker
+      ),
+    }))
+  }
 
-  setSelectedStickerId(sticker.id)
-}
+  function handleMoveSticker(pageId, stickerId, x, y) {
+    setPageStickers((previous) => ({
+      ...previous,
+      [pageId]: (previous[pageId] || []).map((sticker) =>
+        sticker.id === stickerId
+          ? { ...sticker, x, y }
+          : sticker
+      ),
+    }))
+  }
 
-function handleMoveSticker(pageId, stickerId, x, y) {
-  setPageStickers((previous) => ({
-    ...previous,
-    [pageId]: (previous[pageId] || []).map((sticker) =>
-      sticker.id === stickerId
-        ? { ...sticker, x, y }
-        : sticker
-    ),
-  }))
-}
-if (!isStorageReady) {
-  return (
-    <main>
-      <p role="status">
-        {storageError || 'Cargando tus recuerdos…'}
-      </p>
-    </main>
-  )
-}
+  if (!isStorageReady) {
+    return (
+      <main>
+        <p role="status">
+          {storageError || 'Cargando tus recuerdos…'}
+        </p>
+      </main>
+    )
+  }
+
   return (
     <main>
       {storageError && <p role="alert">{storageError}</p>}
+
       <header>
         <img
           src="/marca/logo-literatura.jpg"
@@ -375,17 +402,19 @@ if (!isStorageReady) {
             </button>
           </div>
         )}
+
         <label htmlFor="book-format">Tamaño del fotolibro</label>
 
-<select
-  id="book-format"
-  value={bookFormat}
-  onChange={(event) => setBookFormat(event.target.value)}
-  disabled={showPhotoBook}
->
-  <option value="A4">A4 · 21 × 29,7 cm</option>
-  <option value="A5">A5 · 14,8 × 21 cm</option>
-</select>
+        <select
+          id="book-format"
+          value={bookFormat}
+          onChange={(event) => setBookFormat(event.target.value)}
+          disabled={showPhotoBook}
+        >
+          <option value="A4">A4 · 21 × 29,7 cm</option>
+          <option value="A5">A5 · 14,8 × 21 cm</option>
+        </select>
+
         <button
           type="button"
           disabled={selectedMemories.length === 0 || isProcessing}
@@ -444,27 +473,27 @@ if (!isStorageReady) {
       </section>
 
       {showPhotoBook && (
-      <section
-  ref={photobookRef}
-  className="photobook"
-  data-format={bookFormat}
->
+        <section
+          ref={photobookRef}
+          className="photobook"
+          data-format={bookFormat}
+        >
           {currentPage === 0 ? (
-        <PhotobookCover note={coverNote}>
-  <div className="page-stickers">
-    {(pageStickers.cover || []).map((sticker) => (
-      <MovableSticker
-        key={sticker.id}
-        sticker={sticker}
-        selected={selectedStickerId === sticker.id}
-        onSelect={() => setSelectedStickerId(sticker.id)}
-        onMove={(x, y) =>
-          handleMoveSticker('cover', sticker.id, x, y)
-        }
-      />
-    ))}
-  </div>
-</PhotobookCover>
+            <PhotobookCover note={coverNote}>
+              <div className="page-stickers">
+                {(pageStickers.cover || []).map((sticker) => (
+                  <MovableSticker
+                    key={sticker.id}
+                    sticker={sticker}
+                    selected={selectedStickerId === sticker.id}
+                    onSelect={() => setSelectedStickerId(sticker.id)}
+                    onMove={(x, y) =>
+                      handleMoveSticker('cover', sticker.id, x, y)
+                    }
+                  />
+                ))}
+              </div>
+            </PhotobookCover>
           ) : (
             <figure
               key={currentMemory.id}
@@ -493,154 +522,204 @@ if (!isStorageReady) {
                     selected={selectedStickerId === sticker.id}
                     onSelect={() => setSelectedStickerId(sticker.id)}
                     onMove={(x, y) =>
-                      handleMoveSticker(currentMemory.id, sticker.id, x, y)
+                      handleMoveSticker(
+                        currentMemory.id,
+                        sticker.id,
+                        x,
+                        y
+                      )
                     }
                   />
                 ))}
               </div>
             </figure>
           )}
+
           {currentPage === 0 && (
-  <div className="cover-editor">
-    <label htmlFor="cover-note">Tu frase para la portada</label>
+            <div className="cover-editor">
+              <label htmlFor="cover-note">
+                Tu frase para la portada
+              </label>
 
-    <textarea
-      id="cover-note"
-      value={coverNote}
-      onChange={(event) => setCoverNote(event.target.value)}
-      maxLength={100}
-      rows={3}
-      placeholder="Escribí un recuerdo o una frase de la promo"
-      disabled={isExporting}
-      aria-describedby="cover-note-counter"
-    />
+              <textarea
+                id="cover-note"
+                value={coverNote}
+                onChange={(event) => setCoverNote(event.target.value)}
+                maxLength={100}
+                rows={3}
+                placeholder="Escribí un recuerdo o una frase de la promo"
+                disabled={isExporting}
+                aria-describedby="cover-note-counter"
+              />
 
-    <p id="cover-note-counter" className="caption-counter">
-      {coverNote.length}/100 caracteres
-    </p>
-  </div>
-)}
-{currentStickerPageId && (
-  <div className="sticker-picker">
-    <p>
-      {currentPage === 0
-        ? 'Agregar sticker a la portada · Máximo 10'
-        : 'Agregar sticker a esta página · Máximo 10'}
-    </p>
-   <div className="sticker-categories" aria-label="Categorías de stickers">
-  {stickerCategories.map((category) => (
-    <button
-      key={category.id}
-      type="button"
-      className="sticker-category"
-      aria-pressed={stickerCategory === category.id}
-      onClick={() => setStickerCategory(category.id)}
-    >
-      {category.label}
-    </button>
-  ))}
-</div>
-   <div className="sticker-options">
-  {visibleStickers.map((option) => (
-    <button
-      key={option.id}
-      type="button"
-      className="sticker-option"
-      aria-label={`Agregar sticker ${option.label}`}
-      title={option.label}
-      disabled={
-        isExporting ||
-        (pageStickers[currentStickerPageId] || []).length >= 10
-      }
-      onClick={() => handleAddSticker(option)}
-    >
-      {option.src ? (
-        <img src={option.src} alt="" draggable={false} />
-      ) : (
-        <span>{option.symbol}</span>
-      )}
-    </button>
-  ))}
-</div>
+              <p
+                id="cover-note-counter"
+                className="caption-counter"
+              >
+                {coverNote.length}/100 caracteres
+              </p>
+            </div>
+          )}
 
-    {(pageStickers[currentStickerPageId] || []).some(
-      (sticker) => sticker.id === selectedStickerId
-    ) && (
-      <button
-        type="button"
-        disabled={isExporting}
-        onClick={() => {
-          const pageId = currentStickerPageId
+          {currentStickerPageId && (
+            <div className="sticker-picker">
+              <p>
+                {currentPage === 0
+                  ? 'Agregar sticker a la portada · Máximo 10'
+                  : 'Agregar sticker a esta página · Máximo 10'}
+              </p>
 
-          setPageStickers((previous) => ({
-            ...previous,
-            [pageId]: (previous[pageId] || []).filter(
-              (sticker) => sticker.id !== selectedStickerId
-            ),
-          }))
+              <div
+                className="sticker-categories"
+                aria-label="Categorías de stickers"
+              >
+                {stickerCategories.map((category) => (
+                  <button
+                    key={category.id}
+                    type="button"
+                    className="sticker-category"
+                    aria-pressed={stickerCategory === category.id}
+                    onClick={() => setStickerCategory(category.id)}
+                  >
+                    {category.label}
+                  </button>
+                ))}
+              </div>
 
-          setSelectedStickerId(null)
-        }}
-      >
-        Quitar sticker seleccionado
-      </button>
-    )}
-  </div>
-)}
+              <div className="sticker-options">
+                {visibleStickers.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className="sticker-option"
+                    aria-label={`Agregar sticker ${option.label}`}
+                    title={option.label}
+                    disabled={
+                      isExporting ||
+                      (pageStickers[currentStickerPageId] || []).length >= 10
+                    }
+                    onClick={() => handleAddSticker(option)}
+                  >
+                    {option.src ? (
+                      <img
+                        src={option.src}
+                        alt=""
+                        draggable={false}
+                      />
+                    ) : (
+                      <span>{option.symbol}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
 
-        <div className="photobook-navigation">
-  <button
-    type="button"
-    disabled={currentPage === 0}
-    onClick={() => setPhotoBookPage(currentPage - 1)}
-  >
-    Anterior
-  </button>
+              {activeSticker && (
+                <>
+                  <div className="sticker-size-control">
+                    <label htmlFor="sticker-size">
+                      Tamaño del sticker
+                    </label>
 
-  <p aria-live="polite">
-    {currentPage === 0
-      ? 'Portada'
-      : `Página ${currentPage} de ${selectedMemories.length}`}
-  </p>
+                    <input
+                      id="sticker-size"
+                      type="range"
+                      min={40}
+                      max={180}
+                      step={2}
+                      value={
+                        activeSticker.size ??
+                        (activeSticker.src ? 100 : 48)
+                      }
+                      disabled={isExporting}
+                      onChange={(event) =>
+                        handleStickerSizeChange(
+                          Number(event.target.value)
+                        )
+                      }
+                    />
 
-  <button
-    type="button"
-    disabled={currentPage === selectedMemories.length}
-    onClick={() => setPhotoBookPage(currentPage + 1)}
-  >
-    Siguiente
-  </button>
-</div>
+                    <p>
+                      Deslizá para hacerlo más chico o más grande.
+                    </p>
+                  </div>
 
-<div className="photobook-actions">
-  <button
-    type="button"
-    disabled={isExporting || selectedMemories.length === 0}
-    onClick={handleDownloadPhotobook}
-  >
-    {isExporting ? 'Preparando PDF…' : 'Descargar PDF'}
-  </button>
+                  <button
+                    type="button"
+                    disabled={isExporting}
+                    onClick={() => {
+                      const pageId = currentStickerPageId
 
-  <button
-    type="button"
-    className="photobook-close"
-    onClick={() => setShowPhotoBook(false)}
-  >
-    Cerrar fotolibro
-  </button>
-</div>
+                      setPageStickers((previous) => ({
+                        ...previous,
+                        [pageId]: (previous[pageId] || []).filter(
+                          (sticker) => sticker.id !== selectedStickerId
+                        ),
+                      }))
+
+                      setSelectedStickerId(null)
+                    }}
+                  >
+                    Quitar sticker seleccionado
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="photobook-navigation">
+            <button
+              type="button"
+              disabled={currentPage === 0}
+              onClick={() => setPhotoBookPage(currentPage - 1)}
+            >
+              Anterior
+            </button>
+
+            <p aria-live="polite">
+              {currentPage === 0
+                ? 'Portada'
+                : `Página ${currentPage} de ${selectedMemories.length}`}
+            </p>
+
+            <button
+              type="button"
+              disabled={currentPage === selectedMemories.length}
+              onClick={() => setPhotoBookPage(currentPage + 1)}
+            >
+              Siguiente
+            </button>
+          </div>
+
+          <div className="photobook-actions">
+            <button
+              type="button"
+              disabled={isExporting || selectedMemories.length === 0}
+              onClick={handleDownloadPhotobook}
+            >
+              {isExporting ? 'Preparando PDF…' : 'Descargar PDF'}
+            </button>
+
+            <button
+              type="button"
+              className="photobook-close"
+              onClick={() => setShowPhotoBook(false)}
+            >
+              Cerrar fotolibro
+            </button>
+          </div>
         </section>
       )}
+
       {isExporting && (
-  <PhotobookExport
-    exportRef={exportRef}
-    bookFormat={bookFormat}
-    memories={selectedMemories}
-    pageStickers={pageStickers}
-    pageWidth={exportPageWidth}
-    coverNote={coverNote}
-  />
-)}
+        <PhotobookExport
+          exportRef={exportRef}
+          bookFormat={bookFormat}
+          memories={selectedMemories}
+          pageStickers={pageStickers}
+          pageWidth={exportPageWidth}
+          coverNote={coverNote}
+        />
+      )}
     </main>
   )
 }
