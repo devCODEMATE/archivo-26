@@ -514,44 +514,47 @@ if (!isStorageReady) {
           )}
 
 
-          <div className="photobook-navigation">
-            <button
-              type="button"
-              disabled={currentPage === 0}
-              onClick={() => setPhotoBookPage(currentPage - 1)}
-            >
-              Anterior
-            </button>
+        <div className="photobook-navigation">
+  <button
+    type="button"
+    disabled={currentPage === 0}
+    onClick={() => setPhotoBookPage(currentPage - 1)}
+  >
+    Anterior
+  </button>
 
-            <p aria-live="polite">
-              {currentPage === 0
-                ? 'Portada'
-                : `Página ${currentPage} de ${selectedMemories.length}`}
-            </p>
-            <button
-  type="button"
-  disabled={isExporting || selectedMemories.length === 0}
-  onClick={handleDownloadPhotobook}
->
-  {isExporting
-    ? 'Preparando PDF…'
-    : 'Descargar fotolibro en PDF'}
-</button>
-            <button
-              type="button"
-              disabled={currentPage === selectedMemories.length}
-              onClick={() => setPhotoBookPage(currentPage + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
+  <p aria-live="polite">
+    {currentPage === 0
+      ? 'Portada'
+      : `Página ${currentPage} de ${selectedMemories.length}`}
+  </p>
 
-          <button
-            type="button"
-            onClick={() => setShowPhotoBook(false)}
-          >
-            Cerrar vista del fotolibro
-          </button>
+  <button
+    type="button"
+    disabled={currentPage === selectedMemories.length}
+    onClick={() => setPhotoBookPage(currentPage + 1)}
+  >
+    Siguiente
+  </button>
+</div>
+
+<div className="photobook-actions">
+  <button
+    type="button"
+    disabled={isExporting || selectedMemories.length === 0}
+    onClick={handleDownloadPhotobook}
+  >
+    {isExporting ? 'Preparando PDF…' : 'Descargar PDF'}
+  </button>
+
+  <button
+    type="button"
+    className="photobook-close"
+    onClick={() => setShowPhotoBook(false)}
+  >
+    Cerrar fotolibro
+  </button>
+</div>
         </section>
       )}
       {isExporting && (

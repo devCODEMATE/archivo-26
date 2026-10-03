@@ -293,3 +293,59 @@ button:disabled {
   border-radius: 0;
   box-shadow: none;
 }
+
+.photobook-navigation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.photobook-navigation p {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.photobook-navigation button,
+.photobook-actions button {
+  min-height: 44px;
+  padding: 10px 14px;
+  font: inherit;
+}
+
+.photobook-navigation button:first-child {
+  justify-self: start;
+}
+
+.photobook-navigation button:last-child {
+  justify-self: end;
+}
+
+.photobook-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.photobook-actions .photobook-close {
+  background-color: transparent;
+  border: 1px solid #a51e26;
+  color: #300405;
+}
+
+@media (max-width: 480px) {
+  .photobook-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .photobook-navigation button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .photobook-navigation p {
+    font-size: 12px;
+  }
+}
