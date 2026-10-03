@@ -12,6 +12,7 @@ function App() {
   const [memories, setMemories] = useState([])
   const [showPhotoBook, setShowPhotoBook] = useState(false)
   const [selectedMemoryIds, setSelectedMemoryIds] = useState([])
+  const [photoBookPage, setPhotoBookPage] = useState(0)
 
 async function handlePhotoChange(event) {
   const file = event.target.files?.[0]
@@ -71,6 +72,13 @@ function handleAddMemory() {
     fileInputRef.current.value = ''
   }
 }
+const selectedMemories = memories.filter((memory) =>
+  selectedMemoryIds.includes(memory.id)
+)
+
+const currentPage = Math.min(photoBookPage, selectedMemories.length)
+const currentMemory = selectedMemories[currentPage - 1]
+
   return (
     <main>
    <header>
@@ -229,32 +237,33 @@ function handleAddMemory() {
     ))
   )}
 </section>
-  {showPhotoBook && (
+{showPhotoBook && (
   <section className="photobook">
- <div className="photobook-cover">
-  <p className="photobook-cover-school">
-    Normal · Literatura · 6TO 3RA
-  </p>
+    {currentPage === 0 ? (
+      <div className="photobook-cover">
+        <p className="photobook-cover-school">
+          Normal · Literatura · 6TO 3RA
+        </p>
 
-  <h2>Archivo 26</h2>
-  <p className="photobook-cover-subtitle">Mi último año, en recuerdos.</p>
+        <h2>Archivo 26</h2>
 
-  <img
-    src="/marca/logo-literatura.jpg"
-    alt="Logo de Literatura de la promo"
-    className="photobook-cover-logo"
-  />
+        <p className="photobook-cover-subtitle">
+          Mi último año, en recuerdos.
+        </p>
 
-  <p>Promo 2026</p>
-</div>
-
-   {memories
-  .filter((memory) => selectedMemoryIds.includes(memory.id))
-  .map((memory) => (
-      <figure key={memory.id} className="photobook-page">
         <img
-          src={memory.image}
-          alt={memory.caption || 'Recuerdo de la promo'}
+          src="/marca/logo-literatura.jpg"
+          alt="Logo de Literatura de la promo"
+          className="photobook-cover-logo"
+        />
+
+        <p>Promo 2026</p>
+      </div>
+    ) : (
+      <figure key={currentMemory.id} className="photobook-page">
+        <img
+          src={currentMemory.image}
+          alt={currentMemory.caption || 'Recuerdo de la promo'}
           style={{
             display: 'block',
             width: '100%',
@@ -262,11 +271,36 @@ function handleAddMemory() {
             objectFit: 'contain',
           }}
         />
-        {memory.caption && (
-          <figcaption>{memory.caption}</figcaption>
+
+        {currentMemory.caption && (
+          <figcaption>{currentMemory.caption}</figcaption>
         )}
       </figure>
-    ))}
+    )}
+
+    <div className="photobook-navigation">
+      <button
+        type="button"
+        disabled={currentPage === 0}
+        onClick={() => setPhotoBookPage(currentPage - 1)}
+      >
+        Anterior
+      </button>
+
+      <p aria-live="polite">
+        {currentPage === 0
+          ? 'Portada'
+          : `Página ${currentPage} de ${selectedMemories.length}`}
+      </p>
+
+      <button
+        type="button"
+        disabled={currentPage === selectedMemories.length}
+        onClick={() => setPhotoBookPage(currentPage + 1)}
+      >
+        Siguiente
+      </button>
+    </div>
 
     <button
       type="button"

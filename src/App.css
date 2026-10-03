@@ -171,3 +171,17 @@ label[for="photo-caption"] {
   color: #300405;
   overflow-wrap: anywhere;
 }
+
+.photobook-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
