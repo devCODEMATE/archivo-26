@@ -502,6 +502,7 @@ function App() {
                     key={sticker.id}
                     sticker={sticker}
                     onResize={handleStickerSizeChange}
+                    onRotate={handleStickerRotationChange}
                     selected={selectedStickerId === sticker.id}
                     onSelect={() => setSelectedStickerId(sticker.id)}
                     onMove={(x, y) =>
@@ -533,20 +534,22 @@ function App() {
 
               <div className="page-stickers">
                 {(pageStickers[currentMemory.id] || []).map((sticker) => (
-                  <MovableSticker
-                    key={sticker.id}
-                    sticker={sticker}
-                    selected={selectedStickerId === sticker.id}
-                    onSelect={() => setSelectedStickerId(sticker.id)}
-                    onMove={(x, y) =>
-                      handleMoveSticker(
-                        currentMemory.id,
-                        sticker.id,
-                        x,
-                        y
-                      )
-                    }
-                  />
+            <MovableSticker
+  key={sticker.id}
+  sticker={sticker}
+  onResize={handleStickerSizeChange}
+  onRotate={handleStickerRotationChange}
+  selected={selectedStickerId === sticker.id}
+  onSelect={() => setSelectedStickerId(sticker.id)}
+  onMove={(x, y) =>
+    handleMoveSticker(
+      currentMemory.id,
+      sticker.id,
+      x,
+      y
+    )
+  }
+/>
                 ))}
               </div>
             </figure>
@@ -630,81 +633,79 @@ function App() {
                 ))}
               </div>
 
-              {activeSticker && (
-                <>
-                  <div className="sticker-size-control">
-                    <label htmlFor="sticker-size">
-                      Tamaño del sticker
-                    </label>
+            {activeSticker && (
+  <>
+    <div className="sticker-size-control">
+      <label htmlFor="sticker-size">
+        Tamaño del sticker
+      </label>
 
-                    <input
-                      id="sticker-size"
-                      type="range"
-                      min={40}
-                      max={180}
-                      step={2}
-                      value={
-                        activeSticker.size ??
-                        (activeSticker.src ? 100 : 48)
-                      }
-                      disabled={isExporting}
-                      onChange={(event) =>
-                        handleStickerSizeChange(
-                          Number(event.target.value)
-                        )
-                      }
-                    />
+      <input
+        id="sticker-size"
+        type="range"
+        min={40}
+        max={180}
+        step={2}
+        value={
+          activeSticker.size ??
+          (activeSticker.src ? 100 : 48)
+        }
+        disabled={isExporting}
+        onChange={(event) =>
+          handleStickerSizeChange(Number(event.target.value))
+        }
+      />
 
-                    <p>
-                      Deslizá para hacerlo más chico o más grande.
-                    </p>
-                  </div>
+      <p>
+        Deslizá para hacerlo más chico o más grande.
+      </p>
 
-                  <label htmlFor="sticker-rotation">
-  Giro del sticker · {activeSticker.rotation ?? 0}°
-</label>
+      <label htmlFor="sticker-rotation">
+        Giro del sticker · {activeSticker.rotation ?? 0}°
+      </label>
 
-<input
-  id="sticker-rotation"
-  type="range"
-  min={-180}
-  max={180}
-  step={1}
-  value={activeSticker.rotation ?? 0}
-  disabled={isExporting}
-  onChange={(event) =>
-    handleStickerRotationChange(Number(event.target.value))
-  }
-/>
+      <input
+        id="sticker-rotation"
+        type="range"
+        min={-180}
+        max={180}
+        step={1}
+        value={activeSticker.rotation ?? 0}
+        disabled={isExporting}
+        onChange={(event) =>
+          handleStickerRotationChange(Number(event.target.value))
+        }
+      />
 
-<button
-  type="button"
-  disabled={isExporting}
-  onClick={() => handleStickerRotationChange(0)}
->
-  Enderezar sticker
-</button>
+      <button
+        type="button"
+        disabled={isExporting}
+        onClick={() => handleStickerRotationChange(0)}
+      >
+        Enderezar sticker
+      </button>
+    </div>
 
-                  <button
-                    type="button"
-                    disabled={isExporting}
-                    onClick={() => {
-                      const pageId = currentStickerPageId
+    <button
+      type="button"
+      disabled={isExporting}
+      onClick={() => {
+        const pageId = currentStickerPageId
 
-                      setPageStickers((previous) => ({
-                        ...previous,
-                        [pageId]: (previous[pageId] || []).filter(
-                          (sticker) => sticker.id !== selectedStickerId
-                        ),
-                      }))
+        setPageStickers((previous) => ({
+          ...previous,
+          [pageId]: (previous[pageId] || []).filter(
+            (sticker) => sticker.id !== selectedStickerId
+          ),
+        }))
 
-                      setSelectedStickerId(null)
-                    }}
-                  >
-                    Quitar sticker seleccionado
-                  </button>
-                </>
-              )}
+        setSelectedStickerId(null)
+      }}
+    >
+      Quitar sticker seleccionado
+    </button>
+  </>
+)}
             </div>
           )}
 

@@ -4,6 +4,7 @@ function MovableSticker({
   sticker,
   onMove,
   onResize,
+  onRotate,
   onSelect,
   selected,
 }) {
@@ -49,10 +50,48 @@ function MovableSticker({
     event.currentTarget.setPointerCapture(event.pointerId)
     onSelect()
   }
+  function handleRotateStart(event) {
+  if (event.button !== 0) return
 
+  event.preventDefault()
+  event.stopPropagation()
+
+  const rect = containerRef.current.getBoundingClientRect()
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+
+  gestureRef.current = {
+    mode: 'rotate',
+    pointerId: event.pointerId,
+    centerX,
+    centerY,
+    startAngle: Math.atan2(
+      event.clientY - centerY,
+      event.clientX - centerX
+    ),
+    startRotation: rotation,
+  }
+
+  event.currentTarget.setPointerCapture(event.pointerId)
+  onSelect()
+}
   function handlePointerMove(event) {
     const gesture = gestureRef.current
     if (!gesture || gesture.pointerId !== event.pointerId) return
+   
+    if (gesture.mode === 'rotate') {
+  const angle = Math.atan2(
+    event.clientY - gesture.centerY,
+    event.clientX - gesture.centerX
+  )
+
+  const delta = (angle - gesture.startAngle) * (180 / Math.PI)
+  const degrees = Math.round(gesture.startRotation + delta)
+  const normalized = ((degrees + 180) % 360 + 360) % 360 - 180
+
+  onRotate(normalized)
+  return
+}
 
     if (gesture.mode === 'resize') {
       const deltaX = event.clientX - gesture.startX
@@ -149,24 +188,49 @@ function MovableSticker({
           )}
         </span>
       </button>
+{selected && (
+  <button
+    type="button"
+    className="sticker-rotate-handle"
+    aria-label="Girar sticker"
+    title="Arrastrá para girar"
+    onPointerDown={handleRotateStart}
+    onPointerMove={handlePointerMove}
+    onPointerUp={handlePointerEnd}
+    onPointerCancel={handlePointerEnd}
+    onLostPointerCapture={handlePointerEnd}
+    onClick={(event) => event.stopPropagation()}
+    onKeyDown={(event) => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return
 
-      {selected && (
-        <button
-          type="button"
-          className="sticker-resize-handle"
-          aria-label="Cambiar tamaño del sticker"
-          title="Arrastrá para cambiar el tamaño"
-          onPointerDown={handleResizeStart}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-          onLostPointerCapture={handlePointerEnd}
-          onKeyDown={handleResizeKeyDown}
-          onClick={(event) => event.stopPropagation()}
-        >
-          ↘
-        </button>
-      )}
+      event.preventDefault()
+
+      const degrees =
+        rotation + (event.key === 'ArrowRight' ? 5 : -5)
+
+      onRotate(((degrees + 180) % 360 + 360) % 360 - 180)
+    }}
+  >
+    ↻
+  </button>
+)}
+{selected && (
+  <button
+    type="button"
+    className="sticker-resize-handle"
+    aria-label="Cambiar tamaño del sticker"
+    title="Arrastrá para cambiar el tamaño"
+    onPointerDown={handleResizeStart}
+    onPointerMove={handlePointerMove}
+    onPointerUp={handlePointerEnd}
+    onPointerCancel={handlePointerEnd}
+    onLostPointerCapture={handlePointerEnd}
+    onKeyDown={handleResizeKeyDown}
+    onClick={(event) => event.stopPropagation()}
+  >
+    ↘
+  </button>
+)}
     </div>
   )
 }
