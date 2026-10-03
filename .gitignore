@@ -27,3 +27,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Copias locales de los stickers originales
+/backups/stickers-originals/
