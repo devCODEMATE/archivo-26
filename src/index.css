@@ -85,3 +85,49 @@ label[for="book-format"] {
   margin-right: auto;
   margin-left: auto;
 }
+
+.photobook-cover .page-stickers {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.movable-sticker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sticker-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.sticker-picker .sticker-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: 80px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid #dfcbb5;
+  border-radius: 12px;
+  background-color: #fff8ee;
+  color: #300405;
+}
+
+.sticker-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sticker-option span {
+  font-size: 32px;
+}
