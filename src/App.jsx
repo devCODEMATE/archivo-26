@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import imageCompression from 'browser-image-compression'
 import './App.css'
 import MovableSticker from './components/MovableSticker'
+import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -16,6 +17,9 @@ function App() {
   const [bookFormat, setBookFormat] = useState('A4')
   const fileInputRef = useRef(null)
   const [selectedStickerId, setSelectedStickerId] = useState(null)
+  const [isStorageReady, setIsStorageReady] = useState(false)
+  const [storageError, setStorageError] = useState('')
+  const saveQueueRef = useRef(Promise.resolve())
 
   const selectedMemories = memories.filter((memory) =>
     selectedMemoryIds.includes(memory.id)
@@ -23,6 +27,69 @@ function App() {
 
   const currentPage = Math.min(photoBookPage, selectedMemories.length)
   const currentMemory = selectedMemories[currentPage - 1]
+
+useEffect(() => {
+  let cancelled = false
+
+  async function restorePhotobook() {
+    try {
+      const saved = await loadPhotobook()
+
+      if (cancelled) return
+
+      if (saved) {
+        setMemories(saved.memories ?? [])
+        setSelectedMemoryIds(saved.selectedMemoryIds ?? [])
+        setPageStickers(saved.pageStickers ?? {})
+        setBookFormat(saved.bookFormat ?? 'A4')
+      }
+
+      setIsStorageReady(true)
+    } catch {
+      if (!cancelled) {
+        setStorageError(
+          'No pudimos recuperar el fotolibro. Probá recargando la página.'
+        )
+      }
+    }
+  }
+
+  restorePhotobook()
+
+  return () => {
+    cancelled = true
+  }
+}, [])
+
+useEffect(() => {
+  if (!isStorageReady) return
+
+  const timer = setTimeout(() => {
+    const draft = {
+      memories,
+      selectedMemoryIds,
+      pageStickers,
+      bookFormat,
+    }
+
+    saveQueueRef.current = saveQueueRef.current
+      .then(() => savePhotobook(draft))
+      .then(() => setStorageError(''))
+      .catch(() => {
+        setStorageError(
+          'No pudimos guardar los cambios en este navegador.'
+        )
+      })
+  }, 400)
+
+  return () => clearTimeout(timer)
+}, [
+  isStorageReady,
+  memories,
+  selectedMemoryIds,
+  pageStickers,
+  bookFormat,
+])
 
   function clearPhotoSelection() {
     setPhotoPreview(null)
@@ -145,9 +212,18 @@ function handleMoveSticker(pageId, stickerId, x, y) {
     ),
   }))
 }
-
+if (!isStorageReady) {
   return (
     <main>
+      <p role="status">
+        {storageError || 'Cargando tus recuerdos…'}
+      </p>
+    </main>
+  )
+}
+  return (
+    <main>
+      {storageError && <p role="alert">{storageError}</p>}
       <header>
         <img
           src="/marca/logo-literatura.jpg"
