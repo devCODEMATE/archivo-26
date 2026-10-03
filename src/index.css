@@ -131,3 +131,32 @@ label[for="book-format"] {
 .sticker-option span {
   font-size: 32px;
 }
+
+.sticker-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sticker-picker .sticker-category {
+  min-height: 44px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid #a51e26;
+  border-radius: 24px;
+  background-color: #f5ebdd;
+  color: #300405;
+  font: inherit;
+  font-size: 14px;
+}
+
+.sticker-picker .sticker-category[aria-pressed="true"] {
+  background-color: #a51e26;
+  color: #f5ebdd;
+}
+
+.sticker-category:focus-visible {
+  outline: 2px solid #300405;
+  outline-offset: 3px;
+}
