@@ -47,3 +47,41 @@ header h1 {
   color: #a51e26;
   line-height: 1.2;
 }
+
+.placed-sticker {
+  padding: 4px;
+  border: none;
+  background: transparent;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.placed-sticker:hover {
+  background-color: #f0dfce;
+}
+
+label[for="book-format"] {
+  display: block;
+  margin: 20px 0 8px;
+  font-weight: 600;
+}
+
+#book-format {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #a51e26;
+  border-radius: 12px;
+  background-color: #f5ebdd;
+  color: #300405;
+  font: inherit;
+}
+
+.photobook[data-format="A4"] {
+  width: 100%;
+}
+
+.photobook[data-format="A5"] {
+  width: min(100%, 520px);
+  margin-right: auto;
+  margin-left: auto;
+}
