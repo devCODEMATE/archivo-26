@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import imageCompression from 'browser-image-compression'
 import './App.css'
+import MovableSticker from './components/MovableSticker'
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -14,6 +15,7 @@ function App() {
   const [pageStickers, setPageStickers] = useState({})
   const [bookFormat, setBookFormat] = useState('A4')
   const fileInputRef = useRef(null)
+  const [selectedStickerId, setSelectedStickerId] = useState(null)
 
   const selectedMemories = memories.filter((memory) =>
     selectedMemoryIds.includes(memory.id)
@@ -111,21 +113,38 @@ function App() {
     )
   }
 
-  function handleAddSticker(sticker) {
-    if (!currentMemory) return
+function handleAddSticker(symbol) {
+  if (!currentMemory) return
 
-    const pageId = currentMemory.id
-
-    setPageStickers((previous) => {
-      const stickers = previous[pageId] || []
-      if (stickers.length >= 10) return previous
-
-      return {
-        ...previous,
-        [pageId]: [...stickers, sticker],
-      }
-    })
+  const pageId = currentMemory.id
+  const sticker = {
+    id: crypto.randomUUID(),
+    symbol,
+    x: 10,
+    y: 10,
   }
+
+  setPageStickers((previous) => {
+    const stickers = previous[pageId] || []
+    if (stickers.length >= 10) return previous
+
+    return {
+      ...previous,
+      [pageId]: [...stickers, sticker],
+    }
+  })
+}
+
+function handleMoveSticker(pageId, stickerId, x, y) {
+  setPageStickers((previous) => ({
+    ...previous,
+    [pageId]: (previous[pageId] || []).map((sticker) =>
+      sticker.id === stickerId
+        ? { ...sticker, x, y }
+        : sticker
+    ),
+  }))
+}
 
   return (
     <main>
@@ -330,29 +349,17 @@ function App() {
               )}
 
               <div className="page-stickers">
-                {(pageStickers[currentMemory.id] || []).map(
-                  (sticker, index) => (
-                   <button
-  key={index}
-  type="button"
-  className="placed-sticker"
-  aria-label={`Quitar sticker ${sticker}`}
-  title="Quitar sticker"
-  onClick={() => {
-    const pageId = currentMemory.id
-
-    setPageStickers((previous) => ({
-      ...previous,
-      [pageId]: (previous[pageId] || []).filter(
-        (_, stickerIndex) => stickerIndex !== index
-      ),
-    }))
-  }}
->
-  {sticker}
-</button>
-                  )
-                )}
+                {(pageStickers[currentMemory.id] || []).map((sticker) => (
+                  <MovableSticker
+                    key={sticker.id}
+                    sticker={sticker}
+                    selected={selectedStickerId === sticker.id}
+                    onSelect={() => setSelectedStickerId(sticker.id)}
+                    onMove={(x, y) =>
+                      handleMoveSticker(currentMemory.id, sticker.id, x, y)
+                    }
+                  />
+                ))}
               </div>
             </figure>
           )}
@@ -361,21 +368,44 @@ function App() {
             <div className="sticker-picker">
               <p>Agregar sticker a esta página · Máximo 10</p>
 
-              {['❤️', '⭐', '🌸'].map((sticker) => (
+              {['❤️', '⭐', '🌸'].map((symbol) => (
                 <button
-                  key={sticker}
+                  key={symbol}
                   type="button"
-                  aria-label={`Agregar sticker ${sticker}`}
+                  aria-label={`Agregar sticker ${symbol}`}
                   disabled={
                     (pageStickers[currentMemory.id] || []).length >= 10
                   }
-                  onClick={() => handleAddSticker(sticker)}
+                  onClick={() => handleAddSticker(symbol)}
                 >
-                  {sticker}
+                  {symbol}
                 </button>
               ))}
+
+              {(pageStickers[currentMemory.id] || []).some(
+                (sticker) => sticker.id === selectedStickerId
+              ) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const pageId = currentMemory.id
+
+                    setPageStickers((previous) => ({
+                      ...previous,
+                      [pageId]: (previous[pageId] || []).filter(
+                        (sticker) => sticker.id !== selectedStickerId
+                      ),
+                    }))
+
+                    setSelectedStickerId(null)
+                  }}
+                >
+                  Quitar sticker seleccionado
+                </button>
+              )}
             </div>
           )}
+
 
           <div className="photobook-navigation">
             <button
