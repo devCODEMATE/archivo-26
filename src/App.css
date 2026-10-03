@@ -240,3 +240,49 @@ button:disabled {
 .movable-sticker:active {
   cursor: grabbing;
 }
+
+.photobook {
+  --page-ratio: 210 / 297;
+}
+
+.photobook[data-format="A5"] {
+  --page-ratio: 148 / 210;
+}
+
+.photobook-cover,
+.photobook-page {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 0;
+  aspect-ratio: var(--page-ratio);
+  padding: clamp(12px, 4vw, 32px);
+}
+
+.photobook-page {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: clamp(8px, 3vw, 20px);
+}
+
+.photobook-page > img {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none !important;
+  object-fit: contain;
+}
+
+.photobook-page figcaption {
+  margin: 0;
+  font-size: clamp(16px, 3vw, 24px);
+}
+
+.photobook-cover p {
+  margin: 8px 0;
+}
+
+.photobook-cover-logo {
+  width: clamp(64px, 12vw, 100px);
+  height: clamp(64px, 12vw, 100px);
+  margin: 16px 0;
+}
