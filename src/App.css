@@ -286,3 +286,10 @@ button:disabled {
   height: clamp(64px, 12vw, 100px);
   margin: 16px 0;
 }
+
+.pdf-export .photobook-cover,
+.pdf-export .photobook-page {
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}

@@ -3,6 +3,9 @@ import imageCompression from 'browser-image-compression'
 import './App.css'
 import MovableSticker from './components/MovableSticker'
 import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
+import { flushSync } from 'react-dom'
+import PhotobookExport from './components/PhotobookExport'
+import { exportPhotobook } from './utils/exportPhotobook'
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -20,6 +23,10 @@ function App() {
   const [isStorageReady, setIsStorageReady] = useState(false)
   const [storageError, setStorageError] = useState('')
   const saveQueueRef = useRef(Promise.resolve())
+  const [isExporting, setIsExporting] = useState(false)
+  const [exportPageWidth, setExportPageWidth] = useState(680)
+  const exportRef = useRef(null)
+  const photobookRef = useRef(null)
 
   const selectedMemories = memories.filter((memory) =>
     selectedMemoryIds.includes(memory.id)
@@ -60,7 +67,27 @@ useEffect(() => {
     cancelled = true
   }
 }, [])
+async function handleDownloadPhotobook() {
+  if (isExporting || selectedMemories.length === 0) return
 
+  const page = photobookRef.current?.querySelector(
+    '.photobook-cover, .photobook-page'
+  )
+
+  try {
+    flushSync(() => {
+      setExportPageWidth(page?.getBoundingClientRect().width || 680)
+      setIsExporting(true)
+    })
+
+    await exportPhotobook(exportRef.current, bookFormat)
+  } catch (error) {
+    console.error('Error al exportar el fotolibro:', error)
+    alert('No pudimos generar el PDF. Probá nuevamente.')
+  } finally {
+    setIsExporting(false)
+  }
+}
 useEffect(() => {
   if (!isStorageReady) return
 
@@ -383,7 +410,11 @@ if (!isStorageReady) {
       </section>
 
       {showPhotoBook && (
-       <section className="photobook" data-format={bookFormat}>
+      <section
+  ref={photobookRef}
+  className="photobook"
+  data-format={bookFormat}
+>
           {currentPage === 0 ? (
             <div className="photobook-cover">
               <p className="photobook-cover-school">
@@ -497,7 +528,15 @@ if (!isStorageReady) {
                 ? 'Portada'
                 : `Página ${currentPage} de ${selectedMemories.length}`}
             </p>
-
+            <button
+  type="button"
+  disabled={isExporting || selectedMemories.length === 0}
+  onClick={handleDownloadPhotobook}
+>
+  {isExporting
+    ? 'Preparando PDF…'
+    : 'Descargar fotolibro en PDF'}
+</button>
             <button
               type="button"
               disabled={currentPage === selectedMemories.length}
@@ -515,6 +554,15 @@ if (!isStorageReady) {
           </button>
         </section>
       )}
+      {isExporting && (
+  <PhotobookExport
+    exportRef={exportRef}
+    bookFormat={bookFormat}
+    memories={selectedMemories}
+    pageStickers={pageStickers}
+    pageWidth={exportPageWidth}
+  />
+)}
     </main>
   )
 }
