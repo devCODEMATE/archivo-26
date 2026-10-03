@@ -349,3 +349,131 @@ button:disabled {
     font-size: 12px;
   }
 }
+
+.scrapbook-cover {
+  position: relative;
+  container-type: inline-size;
+  justify-content: space-between;
+  gap: 12px;
+  overflow: hidden;
+  background-color: #f5ebdd;
+  background-image:
+    linear-gradient(135deg, rgb(216 199 175 / 25%), transparent 55%),
+    linear-gradient(315deg, rgb(216 199 175 / 35%), transparent 50%);
+  color: #300405;
+  border: 1px solid #d8c7af;
+}
+
+.cover-school {
+  width: 100%;
+  text-align: center;
+}
+
+.scrapbook-cover .cover-normal {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 8cqw, 56px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.scrapbook-cover .cover-literatura {
+  margin: 8px 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(14px, 3cqw, 20px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.scrapbook-cover .cover-course {
+  display: inline-block;
+  margin: 0;
+  padding: 6px 14px;
+  background-color: #d8c7af;
+  color: #300405;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(12px, 2.5cqw, 16px);
+  font-weight: 800;
+  transform: rotate(-3deg);
+}
+
+.cover-project {
+  width: 100%;
+}
+
+.scrapbook-cover .cover-kicker {
+  margin: 0 0 8px;
+  font-size: clamp(10px, 2.5cqw, 14px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.scrapbook-cover h2 {
+  margin: 0;
+  color: #300405;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 11cqw, 80px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cover-underline {
+  display: block;
+  width: 60%;
+  height: 5px;
+  margin: 14px auto 0;
+  border-top: 3px solid #a51e26;
+  border-bottom: 1px solid #a51e26;
+  transform: rotate(-2deg);
+}
+
+.scrapbook-cover .photobook-cover-logo {
+  width: clamp(64px, 18cqw, 120px);
+  height: clamp(64px, 18cqw, 120px);
+  margin: 0;
+  border: 3px solid #a51e26;
+}
+
+.scrapbook-cover .cover-note {
+  width: 90%;
+  margin: 0;
+  color: #a51e26;
+  font-family: 'Caveat', cursive;
+  font-size: clamp(20px, 6cqw, 38px);
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.scrapbook-cover .cover-location {
+  margin: 0;
+  font-size: clamp(10px, 2.5cqw, 14px);
+  letter-spacing: 0.08em;
+}
+
+.cover-editor {
+  margin: 20px 0;
+}
+
+.cover-editor label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+#cover-note {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #a51e26;
+  border-radius: 12px;
+  background-color: #fff8ee;
+  color: #300405;
+  font: inherit;
+  resize: vertical;
+}
+
+#cover-note:focus-visible {
+  outline: 2px solid #a51e26;
+  outline-offset: 3px;
+}

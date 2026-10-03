@@ -6,6 +6,7 @@ import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
 import { flushSync } from 'react-dom'
 import PhotobookExport from './components/PhotobookExport'
 import { exportPhotobook } from './utils/exportPhotobook'
+import PhotobookCover from './components/PhotobookCover'
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -27,6 +28,9 @@ function App() {
   const [exportPageWidth, setExportPageWidth] = useState(680)
   const exportRef = useRef(null)
   const photobookRef = useRef(null)
+  const [coverNote, setCoverNote] = useState(
+  'Nuestro último año, en recuerdos.'
+)
 
   const selectedMemories = memories.filter((memory) =>
     selectedMemoryIds.includes(memory.id)
@@ -49,6 +53,9 @@ useEffect(() => {
         setSelectedMemoryIds(saved.selectedMemoryIds ?? [])
         setPageStickers(saved.pageStickers ?? {})
         setBookFormat(saved.bookFormat ?? 'A4')
+        setCoverNote(
+  saved.coverNote ?? 'Nuestro último año, en recuerdos.'
+)
       }
 
       setIsStorageReady(true)
@@ -93,10 +100,11 @@ useEffect(() => {
 
   const timer = setTimeout(() => {
     const draft = {
-      memories,
-      selectedMemoryIds,
-      pageStickers,
-      bookFormat,
+     memories,
+     selectedMemoryIds,
+     pageStickers,
+     bookFormat,
+     coverNote,
     }
 
     saveQueueRef.current = saveQueueRef.current
@@ -116,6 +124,7 @@ useEffect(() => {
   selectedMemoryIds,
   pageStickers,
   bookFormat,
+  coverNote,
 ])
 
   function clearPhotoSelection() {
@@ -416,25 +425,7 @@ if (!isStorageReady) {
   data-format={bookFormat}
 >
           {currentPage === 0 ? (
-            <div className="photobook-cover">
-              <p className="photobook-cover-school">
-                Normal · Literatura · 6TO 3RA
-              </p>
-
-              <h2>Archivo 26</h2>
-
-              <p className="photobook-cover-subtitle">
-                Mi último año, en recuerdos.
-              </p>
-
-              <img
-                src="/marca/logo-literatura.jpg"
-                alt="Logo de Literatura de la promo"
-                className="photobook-cover-logo"
-              />
-
-              <p>Promo 2026</p>
-            </div>
+        <PhotobookCover note={coverNote} />
           ) : (
             <figure
               key={currentMemory.id}
@@ -470,7 +461,26 @@ if (!isStorageReady) {
               </div>
             </figure>
           )}
+          {currentPage === 0 && (
+  <div className="cover-editor">
+    <label htmlFor="cover-note">Tu frase para la portada</label>
 
+    <textarea
+      id="cover-note"
+      value={coverNote}
+      onChange={(event) => setCoverNote(event.target.value)}
+      maxLength={100}
+      rows={3}
+      placeholder="Escribí un recuerdo o una frase de la promo"
+      disabled={isExporting}
+      aria-describedby="cover-note-counter"
+    />
+
+    <p id="cover-note-counter" className="caption-counter">
+      {coverNote.length}/100 caracteres
+    </p>
+  </div>
+)}
           {currentMemory && (
             <div className="sticker-picker">
               <p>Agregar sticker a esta página · Máximo 10</p>
@@ -564,6 +574,7 @@ if (!isStorageReady) {
     memories={selectedMemories}
     pageStickers={pageStickers}
     pageWidth={exportPageWidth}
+    coverNote={coverNote}
   />
 )}
     </main>

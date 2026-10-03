@@ -1,8 +1,11 @@
+import PhotobookCover from './PhotobookCover'
+
 function PhotobookExport({
   exportRef,
   bookFormat,
   memories,
   pageStickers,
+  coverNote,
   pageWidth = 680,
 }) {
   return (
@@ -19,25 +22,7 @@ function PhotobookExport({
         pointerEvents: 'none',
       }}
     >
-      <div className="photobook-cover" data-pdf-page>
-        <p className="photobook-cover-school">
-          Normal · Literatura · 6TO 3RA
-        </p>
-
-        <h2>Archivo 26</h2>
-
-        <p className="photobook-cover-subtitle">
-          Mi último año, en recuerdos.
-        </p>
-
-        <img
-          src="/marca/logo-literatura.jpg"
-          alt=""
-          className="photobook-cover-logo"
-        />
-
-        <p>Promo 2026</p>
-      </div>
+ <PhotobookCover note={coverNote} />
 
       {memories.map((memory) => (
         <figure
