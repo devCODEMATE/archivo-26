@@ -273,3 +273,67 @@ label[for="book-format"] {
   outline: 2px solid #300405;
   outline-offset: 3px;
 }
+
+.photobook-order {
+  margin-top: 32px;
+}
+
+.photobook-order-list {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photobook-order-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #dfcbb5;
+  border-radius: 12px;
+  background-color: #fff8ee;
+  color: #300405;
+}
+
+.photobook-order-item > img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.photobook-order-info {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.photobook-order-info p {
+  margin: 4px 0;
+}
+
+.photobook-order-buttons {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.photobook-order-buttons button {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 12px;
+  font: inherit;
+}
+
+@media (min-width: 600px) {
+  .photobook-order-item {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+  }
+
+  .photobook-order-buttons {
+    grid-column: auto;
+  }
+}

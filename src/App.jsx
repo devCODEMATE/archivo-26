@@ -43,9 +43,9 @@ function App() {
   const exportRef = useRef(null)
   const photobookRef = useRef(null)
 
-  const selectedMemories = memories.filter((memory) =>
-    selectedMemoryIds.includes(memory.id)
-  )
+const selectedMemories = selectedMemoryIds
+  .map((id) => memories.find((memory) => memory.id === id))
+  .filter(Boolean)
 
   const currentPage = Math.min(photoBookPage, selectedMemories.length)
   const currentMemory = selectedMemories[currentPage - 1]
@@ -243,6 +243,37 @@ function App() {
         : previous.filter((id) => id !== memoryId)
     )
   }
+
+  function handleReorderMemory(memoryId, direction) {
+  setSelectedMemoryIds((previous) => {
+    const orderedIds = previous.filter((id) =>
+      memories.some((memory) => memory.id === id)
+    )
+
+    const index = orderedIds.indexOf(memoryId)
+    const nextIndex = index + direction
+
+    if (
+      index === -1 ||
+      nextIndex < 0 ||
+      nextIndex >= orderedIds.length
+    ) {
+      return previous
+    }
+
+    const updated = [...orderedIds]
+
+    ;[updated[index], updated[nextIndex]] = [
+      updated[nextIndex],
+      updated[index],
+    ]
+
+    return updated
+  })
+
+  setPhotoBookPage(0)
+  setSelectedStickerId(null)
+}
 
   function handleAddSticker(option) {
     if (!currentStickerPageId) return
@@ -487,6 +518,56 @@ function App() {
           ))
         )}
       </section>
+      
+      {selectedMemories.length > 0 && (
+  <section className="photobook-order">
+    <h2>Orden de mi fotolibro</h2>
+    <p>
+      La portada va primero. Elegí el orden de tus fotos.
+    </p>
+
+    <ol className="photobook-order-list">
+      {selectedMemories.map((memory, index) => (
+        <li key={memory.id} className="photobook-order-item">
+          <img
+            src={memory.image}
+            alt={memory.caption || 'Recuerdo de la promo'}
+          />
+
+          <div className="photobook-order-info">
+            <p>
+              <strong>Foto {index + 1}</strong>
+            </p>
+            <p>{memory.caption || 'Sin descripción'}</p>
+          </div>
+
+          <div className="photobook-order-buttons">
+            <button
+              type="button"
+              disabled={index === 0 || isExporting}
+              aria-label={`Mover foto ${index + 1} antes`}
+              onClick={() => handleReorderMemory(memory.id, -1)}
+            >
+              ↑ Antes
+            </button>
+
+            <button
+              type="button"
+              disabled={
+                index === selectedMemories.length - 1 ||
+                isExporting
+              }
+              aria-label={`Mover foto ${index + 1} después`}
+              onClick={() => handleReorderMemory(memory.id, 1)}
+            >
+              ↓ Después
+            </button>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+)}
 
       {showPhotoBook && (
         <section
