@@ -12,7 +12,7 @@ function App() {
   const [selectedMemoryIds, setSelectedMemoryIds] = useState([])
   const [photoBookPage, setPhotoBookPage] = useState(0)
   const [pageStickers, setPageStickers] = useState({})
-
+  const [bookFormat, setBookFormat] = useState('A4')
   const fileInputRef = useRef(null)
 
   const selectedMemories = memories.filter((memory) =>
@@ -219,7 +219,17 @@ function App() {
             </button>
           </div>
         )}
+        <label htmlFor="book-format">Tamaño del fotolibro</label>
 
+<select
+  id="book-format"
+  value={bookFormat}
+  onChange={(event) => setBookFormat(event.target.value)}
+  disabled={showPhotoBook}
+>
+  <option value="A4">A4 · 21 × 29,7 cm</option>
+  <option value="A5">A5 · 14,8 × 21 cm</option>
+</select>
         <button
           type="button"
           disabled={selectedMemories.length === 0 || isProcessing}
@@ -278,7 +288,7 @@ function App() {
       </section>
 
       {showPhotoBook && (
-        <section className="photobook">
+       <section className="photobook" data-format={bookFormat}>
           {currentPage === 0 ? (
             <div className="photobook-cover">
               <p className="photobook-cover-school">
