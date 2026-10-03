@@ -322,7 +322,25 @@ function App() {
               <div className="page-stickers">
                 {(pageStickers[currentMemory.id] || []).map(
                   (sticker, index) => (
-                    <span key={index}>{sticker}</span>
+                   <button
+  key={index}
+  type="button"
+  className="placed-sticker"
+  aria-label={`Quitar sticker ${sticker}`}
+  title="Quitar sticker"
+  onClick={() => {
+    const pageId = currentMemory.id
+
+    setPageStickers((previous) => ({
+      ...previous,
+      [pageId]: (previous[pageId] || []).filter(
+        (_, stickerIndex) => stickerIndex !== index
+      ),
+    }))
+  }}
+>
+  {sticker}
+</button>
                   )
                 )}
               </div>
