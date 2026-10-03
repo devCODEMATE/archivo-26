@@ -7,6 +7,14 @@ import { flushSync } from 'react-dom'
 import PhotobookExport from './components/PhotobookExport'
 import { exportPhotobook } from './utils/exportPhotobook'
 import PhotobookCover from './components/PhotobookCover'
+import { stickerCatalog } from './stickers/catalog'
+
+const availableStickers = [
+  ...stickerCatalog,
+  { id: 'heart', label: 'Corazón', symbol: '❤️' },
+  { id: 'star', label: 'Estrella', symbol: '⭐' },
+  { id: 'flower', label: 'Flor', symbol: '🌸' },
+]
 
 function App() {
   const [photoPreview, setPhotoPreview] = useState(null)
@@ -218,13 +226,15 @@ useEffect(() => {
     )
   }
 
-function handleAddSticker(symbol) {
+function handleAddSticker(option) {
   if (!currentStickerPageId) return
 
   const pageId = currentStickerPageId
   const sticker = {
     id: crypto.randomUUID(),
-    symbol,
+    label: option.label,
+    src: option.src,
+    symbol: option.symbol,
     x: 10,
     y: 10,
   }
@@ -238,6 +248,8 @@ function handleAddSticker(symbol) {
       [pageId]: [...stickers, sticker],
     }
   })
+
+  setSelectedStickerId(sticker.id)
 }
 
 function handleMoveSticker(pageId, stickerId, x, y) {
@@ -505,20 +517,28 @@ if (!isStorageReady) {
         : 'Agregar sticker a esta página · Máximo 10'}
     </p>
 
-    {['❤️', '⭐', '🌸'].map((symbol) => (
-      <button
-        key={symbol}
-        type="button"
-        aria-label={`Agregar sticker ${symbol}`}
-        disabled={
-          isExporting ||
-          (pageStickers[currentStickerPageId] || []).length >= 10
-        }
-        onClick={() => handleAddSticker(symbol)}
-      >
-        {symbol}
-      </button>
-    ))}
+   <div className="sticker-options">
+  {availableStickers.map((option) => (
+    <button
+      key={option.id}
+      type="button"
+      className="sticker-option"
+      aria-label={`Agregar sticker ${option.label}`}
+      title={option.label}
+      disabled={
+        isExporting ||
+        (pageStickers[currentStickerPageId] || []).length >= 10
+      }
+      onClick={() => handleAddSticker(option)}
+    >
+      {option.src ? (
+        <img src={option.src} alt="" draggable={false} />
+      ) : (
+        <span>{option.symbol}</span>
+      )}
+    </button>
+  ))}
+</div>
 
     {(pageStickers[currentStickerPageId] || []).some(
       (sticker) => sticker.id === selectedStickerId

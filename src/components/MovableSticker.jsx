@@ -2,13 +2,13 @@ import { useRef } from 'react'
 
 function MovableSticker({ sticker, onMove, onSelect, selected }) {
   const dragRef = useRef(null)
+  const size = sticker.src ? 100 : 48
 
   function handlePointerDown(event) {
     if (event.button !== 0) return
 
     const button = event.currentTarget
-    const page = button.parentElement
-    const pageRect = page.getBoundingClientRect()
+    const pageRect = button.parentElement.getBoundingClientRect()
     const stickerRect = button.getBoundingClientRect()
 
     dragRef.current = {
@@ -56,11 +56,13 @@ function MovableSticker({ sticker, onMove, onSelect, selected }) {
     <button
       type="button"
       className="movable-sticker"
-      aria-label={`Seleccionar sticker ${sticker.symbol}`}
+      aria-label={`Seleccionar sticker ${sticker.label || sticker.symbol}`}
       aria-pressed={selected}
       style={{
-        left: `clamp(0px, ${sticker.x}%, calc(100% - 48px))`,
-        top: `clamp(0px, ${sticker.y}%, calc(100% - 48px))`,
+        width: size,
+        height: size,
+        left: `clamp(0px, ${sticker.x}%, calc(100% - ${size}px))`,
+        top: `clamp(0px, ${sticker.y}%, calc(100% - ${size}px))`,
       }}
       onClick={onSelect}
       onPointerDown={handlePointerDown}
@@ -69,7 +71,11 @@ function MovableSticker({ sticker, onMove, onSelect, selected }) {
       onPointerCancel={handlePointerEnd}
       onLostPointerCapture={handlePointerEnd}
     >
-      {sticker.symbol}
+      {sticker.src ? (
+        <img src={sticker.src} alt="" draggable={false} />
+      ) : (
+        sticker.symbol
+      )}
     </button>
   )
 }
