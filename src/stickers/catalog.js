@@ -40,4 +40,47 @@ export const stickerCatalog = [
     label: 'Más que una promo',
     src: '/stickers/promo/mas-que-una-promo.png',
   },
+
+    {
+    id: 'se-aprobo-como-se-pudo',
+    label: 'Se aprobó como se pudo',
+    src: '/stickers/promo/se-aprobo-como-se-pudo.png',
+  },
+  {
+    id: 'era-para-hoy',
+    label: 'Era para hoy',
+    src: '/stickers/promo/era-para-hoy.png',
+  },
+  {
+    id: 'necesito-recreo',
+    label: 'Necesito recreo',
+    src: '/stickers/promo/necesito-recreo.png',
+  },
+  {
+    id: 'una-foto-y-nos-vamos',
+    label: 'Una foto y nos vamos',
+    src: '/stickers/promo/una-foto-y-nos-vamos.png',
+  },
+
+    {
+    id: 'corazon',
+    label: 'Corazón dibujado',
+    src: '/stickers/promo/corazon.png',
+  },
+  {
+    id: 'estrella',
+    label: 'Estrella dibujada',
+    src: '/stickers/promo/estrella.png',
+  },
+  {
+    id: 'destellos',
+    label: 'Destellos',
+    src: '/stickers/promo/destellos.png',
+  },
+  {
+    id: 'rayito',
+    label: 'Rayito',
+    src: '/stickers/promo/rayito.png',
+  },
 ]
+
