@@ -25,11 +25,23 @@ function PhotobookExport({
                 top: `clamp(0px, ${sticker.y}%, calc(100% - ${size}px))`,
               }}
             >
-              {sticker.src ? (
-                <img src={sticker.src} alt="" />
-              ) : (
-                sticker.symbol
-              )}
+          <span
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    transform: `rotate(${sticker.rotation ?? 0}deg)`,
+    transformOrigin: 'center',
+  }}
+>
+  {sticker.src ? (
+    <img src={sticker.src} alt="" />
+  ) : (
+    sticker.symbol
+  )}
+</span>
             </span>
           )
         })}

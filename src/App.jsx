@@ -287,6 +287,22 @@ function App() {
     }))
   }
 
+  function handleStickerRotationChange(rotation) {
+  if (!currentStickerPageId || !selectedStickerId) return
+
+  const pageId = currentStickerPageId
+  const nextRotation = Math.min(180, Math.max(-180, rotation))
+
+  setPageStickers((previous) => ({
+    ...previous,
+    [pageId]: (previous[pageId] || []).map((sticker) =>
+      sticker.id === selectedStickerId
+        ? { ...sticker, rotation: nextRotation }
+        : sticker
+    ),
+  }))
+}
+
   function handleMoveSticker(pageId, stickerId, x, y) {
     setPageStickers((previous) => ({
       ...previous,
@@ -642,6 +658,31 @@ function App() {
                       Deslizá para hacerlo más chico o más grande.
                     </p>
                   </div>
+                  
+                  <label htmlFor="sticker-rotation">
+  Giro del sticker · {activeSticker.rotation ?? 0}°
+</label>
+
+<input
+  id="sticker-rotation"
+  type="range"
+  min={-180}
+  max={180}
+  step={1}
+  value={activeSticker.rotation ?? 0}
+  disabled={isExporting}
+  onChange={(event) =>
+    handleStickerRotationChange(Number(event.target.value))
+  }
+/>
+
+<button
+  type="button"
+  disabled={isExporting}
+  onClick={() => handleStickerRotationChange(0)}
+>
+  Enderezar sticker
+</button>
 
                   <button
                     type="button"

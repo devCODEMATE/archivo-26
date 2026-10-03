@@ -2,7 +2,9 @@ import { useRef } from 'react'
 
 function MovableSticker({ sticker, onMove, onSelect, selected }) {
   const dragRef = useRef(null)
-const size = sticker.size ?? (sticker.src ? 100 : 48)
+  const size = sticker.size ?? (sticker.src ? 100 : 48)
+  const rotation = sticker.rotation ?? 0
+
   function handlePointerDown(event) {
     if (event.button !== 0) return
 
@@ -70,11 +72,24 @@ const size = sticker.size ?? (sticker.src ? 100 : 48)
       onPointerCancel={handlePointerEnd}
       onLostPointerCapture={handlePointerEnd}
     >
-      {sticker.src ? (
-        <img src={sticker.src} alt="" draggable={false} />
-      ) : (
-        sticker.symbol
-      )}
+      <span
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: 'center',
+        }}
+      >
+        {sticker.src ? (
+          <img src={sticker.src} alt="" draggable={false} />
+        ) : (
+          sticker.symbol
+        )}
+      </span>
     </button>
   )
 }
