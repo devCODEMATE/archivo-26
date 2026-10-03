@@ -231,13 +231,27 @@ function handleAddMemory() {
 </section>
   {showPhotoBook && (
   <section className="photobook">
-    <h2>Mi fotolibro</h2>
-    <p>Archivo 26 · Nuestra promo</p>
+ <div className="photobook-cover">
+  <p className="photobook-cover-school">
+    Normal · Literatura · 6TO 3RA
+  </p>
+
+  <h2>Archivo 26</h2>
+  <p className="photobook-cover-subtitle">Mi último año, en recuerdos.</p>
+
+  <img
+    src="/marca/logo-literatura.jpg"
+    alt="Logo de Literatura de la promo"
+    className="photobook-cover-logo"
+  />
+
+  <p>Promo 2026</p>
+</div>
 
    {memories
   .filter((memory) => selectedMemoryIds.includes(memory.id))
   .map((memory) => (
-      <figure key={memory.id}>
+      <figure key={memory.id} className="photobook-page">
         <img
           src={memory.image}
           alt={memory.caption || 'Recuerdo de la promo'}
