@@ -82,5 +82,26 @@ export const stickerCatalog = [
     label: 'Rayito',
     src: '/stickers/promo/rayito.png',
   },
+
+    {
+    id: 'risa',
+    label: 'Risa',
+    src: '/stickers/promo/risa.png',
+  },
+  {
+    id: 'emocion',
+    label: 'Emoción',
+    src: '/stickers/promo/emocion.png',
+  },
+  {
+    id: 'llanto',
+    label: 'Llanto',
+    src: '/stickers/promo/llanto.png',
+  },
+  {
+    id: 'lentes',
+    label: 'Con lentes',
+    src: '/stickers/promo/lentes.png',
+  },
 ]
 
