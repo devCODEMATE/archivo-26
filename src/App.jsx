@@ -7,7 +7,10 @@ import { flushSync } from 'react-dom'
 import PhotobookExport from './components/PhotobookExport'
 import { exportPhotobook } from './utils/exportPhotobook'
 import PhotobookCover from './components/PhotobookCover'
-import { stickerCatalog } from './stickers/catalog'
+import {
+  stickerCatalog,
+  stickerCategories,
+} from './stickers/catalog'
 
 const availableStickers = [
   ...stickerCatalog,
@@ -48,6 +51,14 @@ function App() {
   const currentMemory = selectedMemories[currentPage - 1]
   const currentStickerPageId =
   currentPage === 0 ? 'cover' : currentMemory?.id
+  const activeStickerCategory = stickerCategories.find(
+  (category) => category.id === stickerCategory
+)
+
+const visibleStickers = availableStickers.filter((sticker) =>
+  activeStickerCategory?.stickerIds.includes(sticker.id)
+)
+  const [stickerCategory, setStickerCategory] = useState('promo')
 
 useEffect(() => {
   let cancelled = false
@@ -516,9 +527,21 @@ if (!isStorageReady) {
         ? 'Agregar sticker a la portada · Máximo 10'
         : 'Agregar sticker a esta página · Máximo 10'}
     </p>
-
+   <div className="sticker-categories" aria-label="Categorías de stickers">
+  {stickerCategories.map((category) => (
+    <button
+      key={category.id}
+      type="button"
+      className="sticker-category"
+      aria-pressed={stickerCategory === category.id}
+      onClick={() => setStickerCategory(category.id)}
+    >
+      {category.label}
+    </button>
+  ))}
+</div>
    <div className="sticker-options">
-  {availableStickers.map((option) => (
+  {visibleStickers.map((option) => (
     <button
       key={option.id}
       type="button"

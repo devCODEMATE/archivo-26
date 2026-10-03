@@ -105,3 +105,47 @@ export const stickerCatalog = [
   },
 ]
 
+export const stickerCategories = [
+  {
+    id: 'promo',
+    label: 'Promo',
+    stickerIds: [
+      'normal-26',
+      'literatura',
+      '6to-3ra',
+      'promo-26',
+      'olavarria',
+      'sobrevivimos',
+      'ultimo-recreo',
+      'mas-que-una-promo',
+    ],
+  },
+  {
+    id: 'frases',
+    label: 'Frases',
+    stickerIds: [
+      'se-aprobo-como-se-pudo',
+      'era-para-hoy',
+      'necesito-recreo',
+      'una-foto-y-nos-vamos',
+    ],
+  },
+  {
+    id: 'decorativos',
+    label: 'Decorativos',
+    stickerIds: [
+      'corazon',
+      'estrella',
+      'destellos',
+      'rayito',
+      'heart',
+      'star',
+      'flower',
+    ],
+  },
+  {
+    id: 'reacciones',
+    label: 'Reacciones',
+    stickerIds: ['risa', 'emocion', 'llanto', 'lentes'],
+  },
+]
