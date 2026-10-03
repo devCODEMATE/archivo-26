@@ -501,6 +501,7 @@ function App() {
                   <MovableSticker
                     key={sticker.id}
                     sticker={sticker}
+                    onResize={handleStickerSizeChange}
                     selected={selectedStickerId === sticker.id}
                     onSelect={() => setSelectedStickerId(sticker.id)}
                     onMove={(x, y) =>
@@ -658,7 +659,7 @@ function App() {
                       Deslizá para hacerlo más chico o más grande.
                     </p>
                   </div>
-                  
+
                   <label htmlFor="sticker-rotation">
   Giro del sticker · {activeSticker.rotation ?? 0}°
 </label>
