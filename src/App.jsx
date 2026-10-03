@@ -38,6 +38,8 @@ function App() {
 
   const currentPage = Math.min(photoBookPage, selectedMemories.length)
   const currentMemory = selectedMemories[currentPage - 1]
+  const currentStickerPageId =
+  currentPage === 0 ? 'cover' : currentMemory?.id
 
 useEffect(() => {
   let cancelled = false
@@ -217,9 +219,9 @@ useEffect(() => {
   }
 
 function handleAddSticker(symbol) {
-  if (!currentMemory) return
+  if (!currentStickerPageId) return
 
-  const pageId = currentMemory.id
+  const pageId = currentStickerPageId
   const sticker = {
     id: crypto.randomUUID(),
     symbol,
@@ -425,7 +427,21 @@ if (!isStorageReady) {
   data-format={bookFormat}
 >
           {currentPage === 0 ? (
-        <PhotobookCover note={coverNote} />
+        <PhotobookCover note={coverNote}>
+  <div className="page-stickers">
+    {(pageStickers.cover || []).map((sticker) => (
+      <MovableSticker
+        key={sticker.id}
+        sticker={sticker}
+        selected={selectedStickerId === sticker.id}
+        onSelect={() => setSelectedStickerId(sticker.id)}
+        onMove={(x, y) =>
+          handleMoveSticker('cover', sticker.id, x, y)
+        }
+      />
+    ))}
+  </div>
+</PhotobookCover>
           ) : (
             <figure
               key={currentMemory.id}
@@ -481,48 +497,53 @@ if (!isStorageReady) {
     </p>
   </div>
 )}
-          {currentMemory && (
-            <div className="sticker-picker">
-              <p>Agregar sticker a esta página · Máximo 10</p>
+{currentStickerPageId && (
+  <div className="sticker-picker">
+    <p>
+      {currentPage === 0
+        ? 'Agregar sticker a la portada · Máximo 10'
+        : 'Agregar sticker a esta página · Máximo 10'}
+    </p>
 
-              {['❤️', '⭐', '🌸'].map((symbol) => (
-                <button
-                  key={symbol}
-                  type="button"
-                  aria-label={`Agregar sticker ${symbol}`}
-                  disabled={
-                    (pageStickers[currentMemory.id] || []).length >= 10
-                  }
-                  onClick={() => handleAddSticker(symbol)}
-                >
-                  {symbol}
-                </button>
-              ))}
+    {['❤️', '⭐', '🌸'].map((symbol) => (
+      <button
+        key={symbol}
+        type="button"
+        aria-label={`Agregar sticker ${symbol}`}
+        disabled={
+          isExporting ||
+          (pageStickers[currentStickerPageId] || []).length >= 10
+        }
+        onClick={() => handleAddSticker(symbol)}
+      >
+        {symbol}
+      </button>
+    ))}
 
-              {(pageStickers[currentMemory.id] || []).some(
-                (sticker) => sticker.id === selectedStickerId
-              ) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const pageId = currentMemory.id
+    {(pageStickers[currentStickerPageId] || []).some(
+      (sticker) => sticker.id === selectedStickerId
+    ) && (
+      <button
+        type="button"
+        disabled={isExporting}
+        onClick={() => {
+          const pageId = currentStickerPageId
 
-                    setPageStickers((previous) => ({
-                      ...previous,
-                      [pageId]: (previous[pageId] || []).filter(
-                        (sticker) => sticker.id !== selectedStickerId
-                      ),
-                    }))
+          setPageStickers((previous) => ({
+            ...previous,
+            [pageId]: (previous[pageId] || []).filter(
+              (sticker) => sticker.id !== selectedStickerId
+            ),
+          }))
 
-                    setSelectedStickerId(null)
-                  }}
-                >
-                  Quitar sticker seleccionado
-                </button>
-              )}
-            </div>
-          )}
-
+          setSelectedStickerId(null)
+        }}
+      >
+        Quitar sticker seleccionado
+      </button>
+    )}
+  </div>
+)}
 
         <div className="photobook-navigation">
   <button

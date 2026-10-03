@@ -22,7 +22,22 @@ function PhotobookExport({
         pointerEvents: 'none',
       }}
     >
- <PhotobookCover note={coverNote} />
+<PhotobookCover note={coverNote}>
+  <div className="page-stickers">
+    {(pageStickers.cover || []).map((sticker) => (
+      <span
+        key={sticker.id}
+        className="movable-sticker"
+        style={{
+          left: `clamp(0px, ${sticker.x}%, calc(100% - 48px))`,
+          top: `clamp(0px, ${sticker.y}%, calc(100% - 48px))`,
+        }}
+      >
+        {sticker.symbol}
+      </span>
+    ))}
+  </div>
+</PhotobookCover>
 
       {memories.map((memory) => (
         <figure
