@@ -1,4 +1,6 @@
+import { useRef } from 'react'
 import EditableItem from './EditableItem'
+import MovableCaption from './MovableCaption'
 
 export default function BookPage({
   page,
@@ -11,8 +13,11 @@ export default function BookPage({
   readOnly = false,
   children,
 }) {
+  const pageRef = useRef(null)
+
   return (
     <div
+      ref={pageRef}
       className="photobook-page book-canvas"
       data-layout={page.slots.length}
       data-pdf-page={readOnly ? '' : undefined}
@@ -70,7 +75,35 @@ export default function BookPage({
 
               {memory?.caption && (
                 <figcaption>
-                  {memory.caption}
+         <MovableCaption
+  text={memory.caption}
+  pageRef={pageRef}
+  x={slot.transform?.captionX ?? 0}
+  y={slot.transform?.captionY ?? 0}
+  scale={slot.transform?.captionScale ?? 1}
+  readOnly={readOnly}
+  selected={
+    selected?.type === 'caption' &&
+    selected.index === index
+  }
+  onSelect={() =>
+    onSelect({
+      type: 'caption',
+      index,
+    })
+  }
+  onMove={(x, y) =>
+    onPhotoChange(index, {
+      captionX: x,
+      captionY: y,
+    })
+  }
+  onResize={(scale) =>
+    onPhotoChange(index, {
+      captionScale: scale,
+    })
+  }
+/>
                 </figcaption>
               )}
             </figure>
