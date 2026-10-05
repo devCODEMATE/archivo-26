@@ -1,0 +1,470 @@
+.book-editor-lock {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+.book-editor button {
+  min-height: 44px;
+  font: inherit;
+}
+
+.book-editor-top,
+.book-page-tools {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.book-editor select,
+.book-editor textarea {
+  padding: 10px;
+  font: inherit;
+  border-radius: 8px;
+  border: 1px solid #a51e26;
+  background: #fff8ee;
+  color: #300405;
+}
+
+.book-panel {
+  padding: 12px;
+  margin: 16px 0;
+  border: 1px solid #dfcbb5;
+  border-radius: 12px;
+  background: #fff8ee;
+}
+
+.book-panel summary {
+  min-height: 44px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.book-panel label {
+  display: block;
+  margin: 12px 0;
+}
+
+.book-panel input[type="range"] {
+  width: 100%;
+  accent-color: #a51e26;
+}
+
+.book-layout-choices {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.book-layout-choices button {
+  flex: 1;
+  min-width: 50px;
+  padding: 8px;
+  background: #f5ebdd;
+  color: #300405;
+  border: 1px solid #dfcbb5;
+}
+
+.book-layout-choices button[aria-pressed="true"] {
+  outline: 2px solid #a51e26;
+}
+
+.book-layout-mini {
+  display: grid;
+  height: 45px;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.book-layout-mini i {
+  display: block;
+  background: #a51e26;
+  opacity: 0.6;
+  border-radius: 2px;
+}
+
+.book-layout-mini[data-layout="2"] {
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.book-layout-mini[data-layout="3"],
+.book-layout-mini[data-layout="4"] {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.book-layout-mini[data-layout="3"] i:first-child {
+  grid-column: 1 / -1;
+}
+
+.book-layout-mini[data-layout="5"] {
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+}
+
+.book-layout-mini[data-layout="5"] i:last-child {
+  grid-column: 1 / -1;
+}
+
+.photobook-page.book-canvas {
+  position: relative;
+  display: grid;
+  align-items: stretch;
+  justify-items: stretch;
+  align-content: stretch;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  overflow: visible;
+  container-type: inline-size;
+}
+
+.book-canvas[data-layout="2"] {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.book-canvas[data-layout="3"],
+.book-canvas[data-layout="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.book-canvas[data-layout="3"] .book-cell:first-child {
+  grid-column: 1 / -1;
+}
+
+.book-canvas[data-layout="5"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.book-canvas[data-layout="5"] .book-cell:nth-child(5) {
+  grid-column: 1 / -1;
+}
+
+.book-cell {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 6px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+.book-cell-stage {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.book-canvas .book-cell figcaption {
+  margin: 0;
+  font-size: clamp(12px, 3cqw, 22px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.book-editor .book-empty {
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
+  border: 1px dashed #a51e26;
+  background: #f5ebdd;
+  color: #300405;
+}
+
+.book-empty span {
+  display: block;
+  font-size: 28px;
+}
+
+.book-sticker-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.book-item {
+  position: absolute;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+.book-item[data-selected="true"] {
+  z-index: 5;
+  outline: 2px dashed #a51e26;
+}
+
+.book-item-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
+  pointer-events: none;
+  font-size: 36px;
+}
+
+.book-item-content img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.book-editor .book-item-drag {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #300405;
+  touch-action: none;
+  cursor: grab;
+}
+
+.book-editor .book-item-drag:hover {
+  background: transparent;
+}
+
+.book-editor .book-handle {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #a51e26;
+  color: #fff8ee;
+  border: 1px solid #fff8ee;
+  border-radius: 50%;
+  touch-action: none;
+  font-size: 22px;
+  z-index: 6;
+}
+
+.book-turn {
+  top: -22px;
+  right: -22px;
+}
+
+.book-resize {
+  bottom: -22px;
+  right: -22px;
+}
+
+.book-trash {
+  top: -22px;
+  left: -22px;
+}
+
+.book-editor .book-replace {
+  position: absolute;
+  bottom: -44px;
+  left: 0;
+  min-height: 44px;
+  padding: 4px 8px;
+  background: #a51e26;
+  color: #fff8ee;
+  z-index: 6;
+}
+
+.book-photo-options,
+.book-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+}
+
+.book-photo-options button {
+  padding: 8px;
+  background: #f5ebdd;
+  color: #300405;
+}
+
+.book-photo-options img,
+.book-library img {
+  width: 100%;
+  height: 120px;
+  object-fit: contain;
+}
+
+.book-photo-options span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.book-library figure {
+  margin: 0;
+  min-width: 0;
+}
+
+.book-library figcaption {
+  overflow-wrap: anywhere;
+}
+
+.book-library button {
+  min-height: 44px;
+  font: inherit;
+}
+
+.book-sticker-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.book-sticker-options button {
+  height: 76px;
+  padding: 8px;
+  background: #f5ebdd;
+  color: #300405;
+  font-size: 28px;
+}
+
+.book-sticker-options img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.book-cover-label {
+  display: block;
+  margin: 16px 0;
+}
+
+.book-cover-label textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.book-upload-preview {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  margin-top: 16px;
+  border-radius: 12px;
+}
+
+.book-help {
+  font-size: 14px;
+}
+
+.book-editor button:focus-visible,
+.book-editor summary:focus-visible {
+  outline: 3px solid #300405;
+  outline-offset: 3px;
+}
+
+.pdf-export .book-canvas {
+  overflow: hidden;
+}
+
+.pdf-export .book-item {
+  pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .book-editor-top > * {
+    flex: 1;
+  }
+
+  .book-page-tools button {
+    flex: 1;
+  }
+
+  .book-help {
+    font-size: 12px;
+  }
+}
+
+.photobook-page.book-canvas {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: var(--page-ratio, 210 / 297);
+}
+
+.book-photo-grid {
+  position: absolute;
+  inset: clamp(12px, 4vw, 32px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  justify-items: stretch;
+  gap: 12px;
+}
+
+.book-photo-grid[data-layout="2"] {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.book-photo-grid[data-layout="3"],
+.book-photo-grid[data-layout="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.book-photo-grid[data-layout="3"]
+  .book-cell:first-child {
+  grid-column: 1 / -1;
+}
+
+.book-photo-grid[data-layout="5"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.book-photo-grid[data-layout="5"]
+  .book-cell:nth-child(5) {
+  grid-column: 1 / -1;
+}
+
+.book-photo-grid > .book-cell {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-self: stretch;
+  justify-self: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  gap: 6px;
+}
+
+.book-photo-grid .book-cell-stage {
+  position: relative;
+  align-self: stretch;
+  min-width: 0;
+  min-height: 0;
+}
+
+.book-photo-grid .book-empty {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+}

@@ -1,100 +1,111 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import imageCompression from 'browser-image-compression'
 import './App.css'
+import './BookEditor.css'
 
-import MovableSticker from './components/MovableSticker'
-import PhotobookCover from './components/PhotobookCover'
+import BookEditor from './components/BookEditor'
 import PhotobookExport from './components/PhotobookExport'
 import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
 import { exportPhotobook } from './utils/exportPhotobook'
-import { stickerCatalog, stickerCategories } from './stickers/catalog'
 
-const availableStickers = [
-  ...stickerCatalog,
-  { id: 'heart', label: 'Corazón', symbol: '❤️' },
-  { id: 'star', label: 'Estrella', symbol: '⭐' },
-  { id: 'flower', label: 'Flor', symbol: '🌸' },
-]
+function recoverPages(saved) {
+  if (Array.isArray(saved.bookPages)) {
+    return saved.bookPages
+  }
 
-function App() {
-  const [photoPreview, setPhotoPreview] = useState(null)
-  const [photoSizes, setPhotoSizes] = useState(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [photoCaption, setPhotoCaption] = useState('')
+  const memories = saved.memories || []
+
+  return (saved.selectedMemoryIds || [])
+    .filter((id) =>
+      memories.some((memory) => memory.id === id)
+    )
+    .map((id) => {
+      const old = memories.find(
+        (memory) => memory.id === id
+      ).photoLayout
+
+      return {
+        id: crypto.randomUUID(),
+        slots: [
+          {
+            memoryId: id,
+            transform: old
+              ? {
+                  size: old.scale ?? 85,
+                  rotation: old.rotation ?? 0,
+                  x: Math.max(0, 7.5 + (old.x ?? 0)),
+                  y: Math.max(0, 7.5 + (old.y ?? 0)),
+                }
+              : {},
+          },
+        ],
+        stickers: saved.pageStickers?.[id] || [],
+      }
+    })
+}
+
+export default function App() {
   const [memories, setMemories] = useState([])
-  const [showPhotoBook, setShowPhotoBook] = useState(false)
-  const [selectedMemoryIds, setSelectedMemoryIds] = useState([])
-  const [photoBookPage, setPhotoBookPage] = useState(0)
-  const [pageStickers, setPageStickers] = useState({})
+  const [bookPages, setBookPages] = useState([])
+  const [coverStickers, setCoverStickers] = useState([])
   const [bookFormat, setBookFormat] = useState('A4')
-  const [selectedStickerId, setSelectedStickerId] = useState(null)
-  const [stickerCategory, setStickerCategory] = useState('promo')
-  const [isStorageReady, setIsStorageReady] = useState(false)
-  const [storageError, setStorageError] = useState('')
-  const [isExporting, setIsExporting] = useState(false)
-  const [exportPageWidth, setExportPageWidth] = useState(680)
   const [coverNote, setCoverNote] = useState(
     'Nuestro último año, en recuerdos.'
   )
+  const [showBook, setShowBook] = useState(false)
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState('')
+  const [preview, setPreview] = useState(null)
+  const [caption, setCaption] = useState('')
+  const [sizes, setSizes] = useState(null)
+  const [processing, setProcessing] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportWidth, setExportWidth] = useState(680)
 
-  const fileInputRef = useRef(null)
-  const saveQueueRef = useRef(Promise.resolve())
+  const fileRef = useRef(null)
   const exportRef = useRef(null)
-  const photobookRef = useRef(null)
-
-const selectedMemories = selectedMemoryIds
-  .map((id) => memories.find((memory) => memory.id === id))
-  .filter(Boolean)
-
-  const currentPage = Math.min(photoBookPage, selectedMemories.length)
-  const currentMemory = selectedMemories[currentPage - 1]
-
-  const currentStickerPageId =
-    currentPage === 0 ? 'cover' : currentMemory?.id
-
-  const activeStickerCategory = stickerCategories.find(
-    (category) => category.id === stickerCategory
-  )
-
-  const visibleStickers = availableStickers.filter((sticker) =>
-    activeStickerCategory?.stickerIds.includes(sticker.id)
-  )
-
-  const activeSticker = (
-    pageStickers[currentStickerPageId] || []
-  ).find((sticker) => sticker.id === selectedStickerId)
+  const editorRef = useRef(null)
+  const saveQueue = useRef(Promise.resolve())
 
   useEffect(() => {
     let cancelled = false
 
-    async function restorePhotobook() {
+    async function restore() {
       try {
         const saved = await loadPhotobook()
 
         if (cancelled) return
 
         if (saved) {
-          setMemories(saved.memories ?? [])
-          setSelectedMemoryIds(saved.selectedMemoryIds ?? [])
-          setPageStickers(saved.pageStickers ?? {})
-          setBookFormat(saved.bookFormat ?? 'A4')
+          setMemories(saved.memories || [])
+          setBookPages(recoverPages(saved))
+
+          setCoverStickers(
+            saved.coverStickers ||
+              saved.pageStickers?.cover ||
+              []
+          )
+
+          setBookFormat(saved.bookFormat || 'A4')
+
           setCoverNote(
-            saved.coverNote ?? 'Nuestro último año, en recuerdos.'
+            saved.coverNote ??
+              'Nuestro último año, en recuerdos.'
           )
         }
 
-        setIsStorageReady(true)
+        setReady(true)
       } catch {
         if (!cancelled) {
-          setStorageError(
-            'No pudimos recuperar el fotolibro. Probá recargando la página.'
+          setError(
+            'No pudimos recuperar el borrador. Probá recargando.'
           )
         }
       }
     }
 
-    restorePhotobook()
+    restore()
 
     return () => {
       cancelled = true
@@ -102,254 +113,170 @@ const selectedMemories = selectedMemoryIds
   }, [])
 
   useEffect(() => {
-    if (!isStorageReady) return
+    if (!ready) return
 
     const timer = setTimeout(() => {
-      const draft = {
-        memories,
-        selectedMemoryIds,
-        pageStickers,
-        bookFormat,
-        coverNote,
-      }
-
-      saveQueueRef.current = saveQueueRef.current
-        .then(() => savePhotobook(draft))
-        .then(() => setStorageError(''))
-        .catch(() => {
-          setStorageError(
+      saveQueue.current = saveQueue.current
+        .then(() =>
+          savePhotobook({
+            schemaVersion: 2,
+            memories,
+            bookPages,
+            coverStickers,
+            bookFormat,
+            coverNote,
+          })
+        )
+        .then(() => setError(''))
+        .catch(() =>
+          setError(
             'No pudimos guardar los cambios en este navegador.'
           )
-        })
+        )
     }, 400)
 
     return () => clearTimeout(timer)
   }, [
-    isStorageReady,
+    ready,
     memories,
-    selectedMemoryIds,
-    pageStickers,
+    bookPages,
+    coverStickers,
     bookFormat,
     coverNote,
   ])
 
-  async function handleDownloadPhotobook() {
-    if (isExporting || selectedMemories.length === 0) return
+  function clearPreview() {
+    setPreview(null)
+    setSizes(null)
+    setCaption('')
 
-    const page = photobookRef.current?.querySelector(
-      '.photobook-cover, .photobook-page'
-    )
-
-    try {
-      flushSync(() => {
-        setExportPageWidth(page?.getBoundingClientRect().width || 680)
-        setIsExporting(true)
-      })
-
-      await exportPhotobook(exportRef.current, bookFormat)
-    } catch (error) {
-      console.error('Error al exportar el fotolibro:', error)
-      alert('No pudimos generar el PDF. Probá nuevamente.')
-    } finally {
-      setIsExporting(false)
+    if (fileRef.current) {
+      fileRef.current.value = ''
     }
   }
 
-  function clearPhotoSelection() {
-    setPhotoPreview(null)
-    setPhotoSizes(null)
-    setPhotoCaption('')
-
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
-
-  async function handlePhotoChange(event) {
+  async function selectPhoto(event) {
     const file = event.target.files?.[0]
+
     if (!file) return
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-
-    if (!allowedTypes.includes(file.type)) {
+    if (
+      ![
+        'image/jpeg',
+        'image/png',
+        'image/webp',
+      ].includes(file.type)
+    ) {
       alert('Elegí una imagen JPG, PNG o WebP.')
       event.target.value = ''
       return
     }
 
-    setIsProcessing(true)
+    setProcessing(true)
 
     try {
-      const compressedFile = await imageCompression(file, {
+      const compressed = await imageCompression(file, {
         maxSizeMB: 800000 / (1024 * 1024),
         maxWidthOrHeight: 1600,
         useWebWorker: false,
       })
 
-      if (compressedFile.size > 800000) {
-        alert('No pudimos reducir esta foto a 800 KB. Probá con otra.')
-        return
+      if (compressed.size > 800000) {
+        throw new Error('Imagen demasiado grande')
       }
 
-      const preview =
-        await imageCompression.getDataUrlFromFile(compressedFile)
+      setPreview(
+        await imageCompression.getDataUrlFromFile(
+          compressed
+        )
+      )
 
-      setPhotoSizes({
+      setSizes({
         original: Math.round(file.size / 1000),
-        compressed: Math.round(compressedFile.size / 1000),
+        compressed: Math.round(compressed.size / 1000),
+      })
+    } catch {
+      alert(
+        'No pudimos procesar la foto. Probá con otra.'
+      )
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  function addMemory() {
+    if (!preview || processing) return
+
+    setMemories((previous) => [
+      {
+        id: crypto.randomUUID(),
+        image: preview,
+        caption: caption.trim(),
+      },
+      ...previous,
+    ])
+
+    clearPreview()
+  }
+
+  function removeMemory(id) {
+    if (
+      !window.confirm(
+        '¿Borrar esta foto de Mis recuerdos y de las páginas que la usan?'
+      )
+    ) {
+      return
+    }
+
+    setMemories((previous) =>
+      previous.filter((memory) => memory.id !== id)
+    )
+
+    setBookPages((previous) =>
+      previous.map((page) => ({
+        ...page,
+        slots: page.slots.map((slot) =>
+          slot.memoryId === id
+            ? { memoryId: null, transform: {} }
+            : slot
+        ),
+      }))
+    )
+  }
+
+  async function download() {
+    if (exporting) return
+
+    try {
+      const canvas = editorRef.current?.querySelector(
+        '.photobook-cover, .book-canvas'
+      )
+
+      flushSync(() => {
+        setExportWidth(
+          canvas?.getBoundingClientRect().width || 680
+        )
+        setExporting(true)
       })
 
-      setPhotoPreview(preview)
+      await exportPhotobook(
+        exportRef.current,
+        bookFormat
+      )
     } catch {
-      alert('No pudimos procesar la foto. Probá con otra imagen.')
+      alert(
+        'No pudimos generar el PDF. Probá nuevamente.'
+      )
     } finally {
-      setIsProcessing(false)
+      setExporting(false)
     }
   }
 
-  function handleAddMemory() {
-    if (!photoPreview || isProcessing) return
-
-    const memory = {
-      id: crypto.randomUUID(),
-      image: photoPreview,
-      caption: photoCaption.trim(),
-    }
-
-    setMemories((previous) => [memory, ...previous])
-    clearPhotoSelection()
-  }
-
-  function handleRemoveMemory(memoryId) {
-    setMemories((previous) =>
-      previous.filter((memory) => memory.id !== memoryId)
-    )
-
-    setSelectedMemoryIds((previous) =>
-      previous.filter((id) => id !== memoryId)
-    )
-
-    setPageStickers((previous) => {
-      const updated = { ...previous }
-      delete updated[memoryId]
-      return updated
-    })
-  }
-
-  function handleToggleMemory(memoryId, checked) {
-    setSelectedMemoryIds((previous) =>
-      checked
-        ? [...new Set([...previous, memoryId])]
-        : previous.filter((id) => id !== memoryId)
-    )
-  }
-
-  function handleReorderMemory(memoryId, direction) {
-  setSelectedMemoryIds((previous) => {
-    const orderedIds = previous.filter((id) =>
-      memories.some((memory) => memory.id === id)
-    )
-
-    const index = orderedIds.indexOf(memoryId)
-    const nextIndex = index + direction
-
-    if (
-      index === -1 ||
-      nextIndex < 0 ||
-      nextIndex >= orderedIds.length
-    ) {
-      return previous
-    }
-
-    const updated = [...orderedIds]
-
-    ;[updated[index], updated[nextIndex]] = [
-      updated[nextIndex],
-      updated[index],
-    ]
-
-    return updated
-  })
-
-  setPhotoBookPage(0)
-  setSelectedStickerId(null)
-}
-
-  function handleAddSticker(option) {
-    if (!currentStickerPageId) return
-
-    const pageId = currentStickerPageId
-
-    const sticker = {
-      id: crypto.randomUUID(),
-      label: option.label,
-      src: option.src,
-      symbol: option.symbol,
-      x: 10,
-      y: 10,
-    }
-
-    setPageStickers((previous) => {
-      const stickers = previous[pageId] || []
-      if (stickers.length >= 10) return previous
-
-      return {
-        ...previous,
-        [pageId]: [...stickers, sticker],
-      }
-    })
-
-    setSelectedStickerId(sticker.id)
-  }
-
-  function handleStickerSizeChange(size) {
-    if (!currentStickerPageId || !selectedStickerId) return
-
-    const pageId = currentStickerPageId
-    const nextSize = Math.min(180, Math.max(40, size))
-
-    setPageStickers((previous) => ({
-      ...previous,
-      [pageId]: (previous[pageId] || []).map((sticker) =>
-        sticker.id === selectedStickerId
-          ? { ...sticker, size: nextSize }
-          : sticker
-      ),
-    }))
-  }
-
-  function handleStickerRotationChange(rotation) {
-  if (!currentStickerPageId || !selectedStickerId) return
-
-  const pageId = currentStickerPageId
-  const nextRotation = Math.min(180, Math.max(-180, rotation))
-
-  setPageStickers((previous) => ({
-    ...previous,
-    [pageId]: (previous[pageId] || []).map((sticker) =>
-      sticker.id === selectedStickerId
-        ? { ...sticker, rotation: nextRotation }
-        : sticker
-    ),
-  }))
-}
-
-  function handleMoveSticker(pageId, stickerId, x, y) {
-    setPageStickers((previous) => ({
-      ...previous,
-      [pageId]: (previous[pageId] || []).map((sticker) =>
-        sticker.id === stickerId
-          ? { ...sticker, x, y }
-          : sticker
-      ),
-    }))
-  }
-
-  if (!isStorageReady) {
+  if (!ready) {
     return (
       <main>
         <p role="status">
-          {storageError || 'Cargando tus recuerdos…'}
+          {error || 'Cargando tus recuerdos…'}
         </p>
       </main>
     )
@@ -357,7 +284,7 @@ const selectedMemories = selectedMemoryIds
 
   return (
     <main>
-      {storageError && <p role="alert">{storageError}</p>}
+      {error && <p role="alert">{error}</p>}
 
       <header>
         <img
@@ -373,38 +300,35 @@ const selectedMemories = selectedMemoryIds
 
       <section>
         <h2>Nuestro último año, en un solo lugar.</h2>
-        <p>Guardemos los momentos que queremos recordar.</p>
+        <p>
+          Guardemos los momentos que queremos recordar.
+        </p>
 
         <input
-          ref={fileInputRef}
+          ref={fileRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           hidden
-          disabled={isProcessing}
-          onChange={handlePhotoChange}
+          disabled={processing || exporting}
+          onChange={selectPhoto}
         />
 
         <button
           type="button"
-          disabled={isProcessing}
-          onClick={() => fileInputRef.current?.click()}
+          disabled={processing || exporting}
+          onClick={() => fileRef.current?.click()}
         >
-          {isProcessing ? 'Procesando foto…' : 'Subir foto'}
+          {processing
+            ? 'Procesando foto…'
+            : 'Subir foto'}
         </button>
 
-        {photoPreview && (
+        {preview && (
           <div>
             <img
-              src={photoPreview}
+              className="book-upload-preview"
+              src={preview}
               alt="Vista previa de la foto seleccionada"
-              style={{
-                display: 'block',
-                width: '100%',
-                maxHeight: '320px',
-                objectFit: 'contain',
-                marginTop: '16px',
-                borderRadius: '12px',
-              }}
             />
 
             <label htmlFor="photo-caption">
@@ -413,439 +337,123 @@ const selectedMemories = selectedMemoryIds
 
             <input
               id="photo-caption"
-              type="text"
-              value={photoCaption}
-              onChange={(event) => setPhotoCaption(event.target.value)}
+              value={caption}
               maxLength={150}
-              placeholder="Por ejemplo: Último primer día"
-              disabled={isProcessing}
+              disabled={processing}
+              onChange={(event) =>
+                setCaption(event.target.value)
+              }
             />
 
             <p className="caption-counter">
-              {photoCaption.length}/150 caracteres
+              {caption.length}/150 caracteres
             </p>
 
-            {photoSizes && (
+            {sizes && (
               <p>
-                Original: {photoSizes.original} KB · Comprimida:{' '}
-                {photoSizes.compressed} KB
+                Original: {sizes.original} KB ·
+                Comprimida: {sizes.compressed} KB
               </p>
             )}
 
             <button
               type="button"
-              disabled={isProcessing}
-              onClick={handleAddMemory}
+              disabled={processing || exporting}
+              onClick={addMemory}
             >
               Agregar a recuerdos
             </button>
 
             <button
               type="button"
-              disabled={isProcessing}
-              onClick={clearPhotoSelection}
+              disabled={processing}
+              onClick={clearPreview}
             >
               Quitar foto
             </button>
           </div>
         )}
 
-        <label htmlFor="book-format">Tamaño del fotolibro</label>
-
-        <select
-          id="book-format"
-          value={bookFormat}
-          onChange={(event) => setBookFormat(event.target.value)}
-          disabled={showPhotoBook}
-        >
-          <option value="A4">A4 · 21 × 29,7 cm</option>
-          <option value="A5">A5 · 14,8 × 21 cm</option>
-        </select>
-
         <button
           type="button"
-          disabled={selectedMemories.length === 0 || isProcessing}
-          onClick={() => {
-            setPhotoBookPage(0)
-            setShowPhotoBook(true)
-          }}
+          disabled={processing || exporting}
+          onClick={() => setShowBook(true)}
         >
-          Crear mi fotolibro
+          Abrir mi fotolibro
         </button>
       </section>
 
       <section>
-        <h2>Últimos recuerdos</h2>
+        <h2>Mis recuerdos</h2>
 
         {memories.length === 0 ? (
-          <p>Acá aparecerán las fotos de nuestra promo.</p>
+          <p>
+            Agregá fotos y después elegilas dentro
+            de cada página.
+          </p>
         ) : (
-          memories.map((memory) => (
-            <figure key={memory.id}>
-              <img
-                src={memory.image}
-                alt={memory.caption || 'Recuerdo de la promo'}
-                style={{
-                  width: '100%',
-                  maxHeight: '320px',
-                  objectFit: 'contain',
-                  borderRadius: '12px',
-                }}
-              />
-
-              {memory.caption && (
-                <figcaption>{memory.caption}</figcaption>
-              )}
-
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedMemoryIds.includes(memory.id)}
-                  onChange={(event) =>
-                    handleToggleMemory(memory.id, event.target.checked)
+          <div className="book-library">
+            {memories.map((memory) => (
+              <figure key={memory.id}>
+                <img
+                  src={memory.image}
+                  alt={
+                    memory.caption ||
+                    'Recuerdo de la promo'
                   }
                 />
-                Incluir en mi fotolibro
-              </label>
 
-              <button
-                type="button"
-                onClick={() => handleRemoveMemory(memory.id)}
-              >
-                Quitar recuerdo
-              </button>
-            </figure>
-          ))
+                {memory.caption && (
+                  <figcaption>
+                    {memory.caption}
+                  </figcaption>
+                )}
+
+                <button
+                  type="button"
+                  disabled={exporting}
+                  onClick={() =>
+                    removeMemory(memory.id)
+                  }
+                >
+                  Borrar de Mis recuerdos
+                </button>
+              </figure>
+            ))}
+          </div>
         )}
       </section>
-      
-      {selectedMemories.length > 0 && (
-  <section className="photobook-order">
-    <h2>Orden de mi fotolibro</h2>
-    <p>
-      La portada va primero. Elegí el orden de tus fotos.
-    </p>
 
-    <ol className="photobook-order-list">
-      {selectedMemories.map((memory, index) => (
-        <li key={memory.id} className="photobook-order-item">
-          <img
-            src={memory.image}
-            alt={memory.caption || 'Recuerdo de la promo'}
+      {showBook && (
+        <div ref={editorRef}>
+          <BookEditor
+            memories={memories}
+            bookPages={bookPages}
+            setBookPages={setBookPages}
+            coverStickers={coverStickers}
+            setCoverStickers={setCoverStickers}
+            bookFormat={bookFormat}
+            setBookFormat={setBookFormat}
+            coverNote={coverNote}
+            setCoverNote={setCoverNote}
+            isExporting={exporting}
+            onDownload={download}
+            onClose={() => setShowBook(false)}
           />
-
-          <div className="photobook-order-info">
-            <p>
-              <strong>Foto {index + 1}</strong>
-            </p>
-            <p>{memory.caption || 'Sin descripción'}</p>
-          </div>
-
-          <div className="photobook-order-buttons">
-            <button
-              type="button"
-              disabled={index === 0 || isExporting}
-              aria-label={`Mover foto ${index + 1} antes`}
-              onClick={() => handleReorderMemory(memory.id, -1)}
-            >
-              ↑ Antes
-            </button>
-
-            <button
-              type="button"
-              disabled={
-                index === selectedMemories.length - 1 ||
-                isExporting
-              }
-              aria-label={`Mover foto ${index + 1} después`}
-              onClick={() => handleReorderMemory(memory.id, 1)}
-            >
-              ↓ Después
-            </button>
-          </div>
-        </li>
-      ))}
-    </ol>
-  </section>
-)}
-
-      {showPhotoBook && (
-        <section
-          ref={photobookRef}
-          className="photobook"
-          data-format={bookFormat}
-        >
-          {currentPage === 0 ? (
-            <PhotobookCover note={coverNote}>
-              <div className="page-stickers">
-                {(pageStickers.cover || []).map((sticker) => (
-                  <MovableSticker
-                    key={sticker.id}
-                    sticker={sticker}
-                    onResize={handleStickerSizeChange}
-                    onRotate={handleStickerRotationChange}
-                    selected={selectedStickerId === sticker.id}
-                    onSelect={() => setSelectedStickerId(sticker.id)}
-                    onMove={(x, y) =>
-                      handleMoveSticker('cover', sticker.id, x, y)
-                    }
-                  />
-                ))}
-              </div>
-            </PhotobookCover>
-          ) : (
-            <figure
-              key={currentMemory.id}
-              className="photobook-page"
-            >
-              <img
-                src={currentMemory.image}
-                alt={currentMemory.caption || 'Recuerdo de la promo'}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  maxHeight: '400px',
-                  objectFit: 'contain',
-                }}
-              />
-
-              {currentMemory.caption && (
-                <figcaption>{currentMemory.caption}</figcaption>
-              )}
-
-              <div className="page-stickers">
-                {(pageStickers[currentMemory.id] || []).map((sticker) => (
-            <MovableSticker
-  key={sticker.id}
-  sticker={sticker}
-  onResize={handleStickerSizeChange}
-  onRotate={handleStickerRotationChange}
-  selected={selectedStickerId === sticker.id}
-  onSelect={() => setSelectedStickerId(sticker.id)}
-  onMove={(x, y) =>
-    handleMoveSticker(
-      currentMemory.id,
-      sticker.id,
-      x,
-      y
-    )
-  }
-/>
-                ))}
-              </div>
-            </figure>
-          )}
-
-          {currentPage === 0 && (
-            <div className="cover-editor">
-              <label htmlFor="cover-note">
-                Tu frase para la portada
-              </label>
-
-              <textarea
-                id="cover-note"
-                value={coverNote}
-                onChange={(event) => setCoverNote(event.target.value)}
-                maxLength={100}
-                rows={3}
-                placeholder="Escribí un recuerdo o una frase de la promo"
-                disabled={isExporting}
-                aria-describedby="cover-note-counter"
-              />
-
-              <p
-                id="cover-note-counter"
-                className="caption-counter"
-              >
-                {coverNote.length}/100 caracteres
-              </p>
-            </div>
-          )}
-
-          {currentStickerPageId && (
-            <div className="sticker-picker">
-              <p>
-                {currentPage === 0
-                  ? 'Agregar sticker a la portada · Máximo 10'
-                  : 'Agregar sticker a esta página · Máximo 10'}
-              </p>
-
-              <div
-                className="sticker-categories"
-                aria-label="Categorías de stickers"
-              >
-                {stickerCategories.map((category) => (
-                  <button
-                    key={category.id}
-                    type="button"
-                    className="sticker-category"
-                    aria-pressed={stickerCategory === category.id}
-                    onClick={() => setStickerCategory(category.id)}
-                  >
-                    {category.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="sticker-options">
-                {visibleStickers.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className="sticker-option"
-                    aria-label={`Agregar sticker ${option.label}`}
-                    title={option.label}
-                    disabled={
-                      isExporting ||
-                      (pageStickers[currentStickerPageId] || []).length >= 10
-                    }
-                    onClick={() => handleAddSticker(option)}
-                  >
-                    {option.src ? (
-                      <img
-                        src={option.src}
-                        alt=""
-                        draggable={false}
-                      />
-                    ) : (
-                      <span>{option.symbol}</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-
-            {activeSticker && (
-  <>
-    <div className="sticker-size-control">
-      <label htmlFor="sticker-size">
-        Tamaño del sticker
-      </label>
-
-      <input
-        id="sticker-size"
-        type="range"
-        min={40}
-        max={180}
-        step={2}
-        value={
-          activeSticker.size ??
-          (activeSticker.src ? 100 : 48)
-        }
-        disabled={isExporting}
-        onChange={(event) =>
-          handleStickerSizeChange(Number(event.target.value))
-        }
-      />
-
-      <p>
-        Deslizá para hacerlo más chico o más grande.
-      </p>
-
-      <label htmlFor="sticker-rotation">
-        Giro del sticker · {activeSticker.rotation ?? 0}°
-      </label>
-
-      <input
-        id="sticker-rotation"
-        type="range"
-        min={-180}
-        max={180}
-        step={1}
-        value={activeSticker.rotation ?? 0}
-        disabled={isExporting}
-        onChange={(event) =>
-          handleStickerRotationChange(Number(event.target.value))
-        }
-      />
-
-      <button
-        type="button"
-        disabled={isExporting}
-        onClick={() => handleStickerRotationChange(0)}
-      >
-        Enderezar sticker
-      </button>
-    </div>
-
-    <button
-      type="button"
-      disabled={isExporting}
-      onClick={() => {
-        const pageId = currentStickerPageId
-
-        setPageStickers((previous) => ({
-          ...previous,
-          [pageId]: (previous[pageId] || []).filter(
-            (sticker) => sticker.id !== selectedStickerId
-          ),
-        }))
-
-        setSelectedStickerId(null)
-      }}
-    >
-      Quitar sticker seleccionado
-    </button>
-  </>
-)}
-            </div>
-          )}
-
-          <div className="photobook-navigation">
-            <button
-              type="button"
-              disabled={currentPage === 0}
-              onClick={() => setPhotoBookPage(currentPage - 1)}
-            >
-              Anterior
-            </button>
-
-            <p aria-live="polite">
-              {currentPage === 0
-                ? 'Portada'
-                : `Página ${currentPage} de ${selectedMemories.length}`}
-            </p>
-
-            <button
-              type="button"
-              disabled={currentPage === selectedMemories.length}
-              onClick={() => setPhotoBookPage(currentPage + 1)}
-            >
-              Siguiente
-            </button>
-          </div>
-
-          <div className="photobook-actions">
-            <button
-              type="button"
-              disabled={isExporting || selectedMemories.length === 0}
-              onClick={handleDownloadPhotobook}
-            >
-              {isExporting ? 'Preparando PDF…' : 'Descargar PDF'}
-            </button>
-
-            <button
-              type="button"
-              className="photobook-close"
-              onClick={() => setShowPhotoBook(false)}
-            >
-              Cerrar fotolibro
-            </button>
-          </div>
-        </section>
+        </div>
       )}
 
-      {isExporting && (
+      {exporting && (
         <PhotobookExport
           exportRef={exportRef}
           bookFormat={bookFormat}
-          memories={selectedMemories}
-          pageStickers={pageStickers}
-          pageWidth={exportPageWidth}
+          memories={memories}
+          bookPages={bookPages}
+          coverStickers={coverStickers}
           coverNote={coverNote}
+          pageWidth={exportWidth}
         />
       )}
     </main>
   )
 }
-
-export default App

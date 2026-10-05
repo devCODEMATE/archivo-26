@@ -1,50 +1,26 @@
 import PhotobookCover from './PhotobookCover'
+import BookPage from './BookPage'
+import EditableItem from './EditableItem'
 
-function PhotobookExport({
+export default function PhotobookExport({
   exportRef,
   bookFormat,
   memories,
-  pageStickers,
+  bookPages,
+  coverStickers,
   coverNote,
   pageWidth = 680,
 }) {
-  function renderStickers(pageId) {
+  function stickers(items) {
     return (
-      <div className="page-stickers">
-        {(pageStickers[pageId] || []).map((sticker) => {
-          const size = sticker.size ?? (sticker.src ? 100 : 48)
-
-          return (
-            <span
-              key={sticker.id}
-              className="movable-sticker"
-              style={{
-                width: size,
-                height: size,
-                left: `clamp(0px, ${sticker.x}%, calc(100% - ${size}px))`,
-                top: `clamp(0px, ${sticker.y}%, calc(100% - ${size}px))`,
-              }}
-            >
-          <span
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-    height: '100%',
-    transform: `rotate(${sticker.rotation ?? 0}deg)`,
-    transformOrigin: 'center',
-  }}
->
-  {sticker.src ? (
-    <img src={sticker.src} alt="" />
-  ) : (
-    sticker.symbol
-  )}
-</span>
-            </span>
-          )
-        })}
+      <div className="book-sticker-layer">
+        {items.map((item) => (
+          <EditableItem
+            key={item.id}
+            item={item}
+            readOnly
+          />
+        ))}
       </div>
     )
   }
@@ -59,39 +35,24 @@ function PhotobookExport({
         position: 'fixed',
         left: '-10000px',
         top: 0,
-        width: `${pageWidth}px`,
+        width: pageWidth,
         pointerEvents: 'none',
       }}
     >
       <PhotobookCover note={coverNote}>
-        {renderStickers('cover')}
+        {stickers(coverStickers)}
       </PhotobookCover>
 
-      {memories.map((memory) => (
-        <figure
-          key={memory.id}
-          className="photobook-page"
-          data-pdf-page
+      {bookPages.map((page) => (
+        <BookPage
+          key={page.id}
+          page={page}
+          memories={memories}
+          readOnly
         >
-          <img
-            src={memory.image}
-            alt=""
-            style={{
-              display: 'block',
-              width: '100%',
-              objectFit: 'contain',
-            }}
-          />
-
-          {memory.caption && (
-            <figcaption>{memory.caption}</figcaption>
-          )}
-
-          {renderStickers(memory.id)}
-        </figure>
+          {stickers(page.stickers || [])}
+        </BookPage>
       ))}
     </div>
   )
 }
-
-export default PhotobookExport

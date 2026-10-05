@@ -477,3 +477,184 @@ button:disabled {
   outline: 2px solid #a51e26;
   outline-offset: 3px;
 }
+
+.photobook-page.photobook-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 12px;
+  overflow: visible;
+  container-type: inline-size;
+}
+
+.photobook-layout[data-photos="2"] {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.photobook-layout[data-photos="3"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.photobook-layout[data-photos="3"]
+  .photobook-photo-slot:first-child {
+  grid-column: 1 / -1;
+}
+
+.photobook-layout[data-photos="4"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.photobook-layout[data-photos="5"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.photobook-layout[data-photos="5"]
+  .photobook-photo-slot:nth-child(5) {
+  grid-column: 1 / -1;
+}
+
+.photobook-photo-slot {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+}
+
+.photobook-photo-slot > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+}
+
+.photobook-layout .photobook-photo-slot figcaption {
+  margin: 0;
+  font-size: clamp(12px, 3cqw, 22px);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.photobook-photo-slot[data-active="true"] {
+  outline: 1px dashed #a51e26;
+  outline-offset: 3px;
+}
+
+label[for="photos-per-page"],
+.photo-target-control label {
+  display: block;
+  margin: 16px 0 8px;
+  font-weight: 600;
+}
+
+#photos-per-page,
+#sticker-photo {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #a51e26;
+  border-radius: 12px;
+  background-color: #fff8ee;
+  color: #300405;
+  font: inherit;
+}
+
+.pdf-export .photobook-layout {
+  overflow: hidden;
+}
+
+.photobook-photo-stage {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  line-height: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.photobook-photo-stage:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.photobook-photo-stage:active {
+  cursor: grabbing;
+}
+
+.photobook-photo-stage:focus-visible {
+  outline: 2px solid #a51e26;
+  outline-offset: 2px;
+}
+
+.photobook-photo-content {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.photobook-photo-content img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.photo-layout-editors {
+  margin: 20px 0;
+}
+
+.photo-layout-editor {
+  min-width: 0;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #dfcbb5;
+  border-radius: 12px;
+  background-color: #fff8ee;
+}
+
+.photo-layout-editor legend {
+  max-width: 100%;
+  padding: 0 6px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.photo-layout-editor label {
+  display: block;
+  margin-bottom: 16px;
+  color: #300405;
+}
+
+.photo-layout-editor input[type="range"] {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  margin-top: 8px;
+  accent-color: #a51e26;
+}
+
+.photo-layout-editor button {
+  min-height: 44px;
+  font: inherit;
+}
