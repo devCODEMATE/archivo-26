@@ -8,6 +8,10 @@ import BookEditor from './components/BookEditor'
 import PhotobookExport from './components/PhotobookExport'
 import { loadPhotobook, savePhotobook } from './storage/photobookStorage'
 import { exportPhotobook } from './utils/exportPhotobook'
+import { createId } from './utils/createId'
+import { initializeBookPages } from './utils/initializeBookPages'
+import { TrashIcon } from './components/EditableItem'
+import './CoverDesign.css'
 
 function recoverPages(saved) {
   if (Array.isArray(saved.bookPages)) {
@@ -26,7 +30,7 @@ function recoverPages(saved) {
       ).photoLayout
 
       return {
-        id: crypto.randomUUID(),
+        id: createId(),
         slots: [
           {
             memoryId: id,
@@ -68,6 +72,10 @@ export default function App() {
   const editorRef = useRef(null)
   const saveQueue = useRef(Promise.resolve())
 
+  const [selectingMemories, setSelectingMemories] = useState(false)
+ const [selectedLibraryIds, setSelectedLibraryIds] = useState([])
+ const [backStickers, setBackStickers] = useState([])
+
   useEffect(() => {
     let cancelled = false
 
@@ -79,7 +87,8 @@ export default function App() {
 
         if (saved) {
           setMemories(saved.memories || [])
-          setBookPages(recoverPages(saved))
+          setBackStickers(saved.backStickers || [])
+          
 
           setCoverStickers(
             saved.coverStickers ||
@@ -94,6 +103,15 @@ export default function App() {
               'Nuestro último año, en recuerdos.'
           )
         }
+
+setBookPages(
+  initializeBookPages(
+    saved ? recoverPages(saved) : [],
+    saved?.standardPagesInitialized === true
+  )
+)
+
+setReady(true)
 
         setReady(true)
       } catch {
@@ -118,14 +136,16 @@ export default function App() {
     const timer = setTimeout(() => {
       saveQueue.current = saveQueue.current
         .then(() =>
-          savePhotobook({
-            schemaVersion: 2,
-            memories,
-            bookPages,
-            coverStickers,
-            bookFormat,
-            coverNote,
-          })
+savePhotobook({
+  schemaVersion: 2,
+  standardPagesInitialized: true,
+  memories,
+  bookPages,
+  coverStickers,
+  backStickers,
+  bookFormat,
+  coverNote,
+})
         )
         .then(() => setError(''))
         .catch(() =>
@@ -136,14 +156,15 @@ export default function App() {
     }, 400)
 
     return () => clearTimeout(timer)
-  }, [
-    ready,
-    memories,
-    bookPages,
-    coverStickers,
-    bookFormat,
-    coverNote,
-  ])
+}, [
+  ready,
+  memories,
+  bookPages,
+  coverStickers,
+  backStickers,
+  bookFormat,
+  coverNote,
+])
 
   function clearPreview() {
     setPreview(null)
@@ -209,7 +230,7 @@ export default function App() {
 
     setMemories((previous) => [
       {
-        id: crypto.randomUUID(),
+        id: createId(),
         image: preview,
         caption: caption.trim(),
       },
@@ -218,31 +239,35 @@ export default function App() {
 
     clearPreview()
   }
+function removeSelectedMemories() {
+  if (exporting || selectedLibraryIds.length === 0) return
 
-  function removeMemory(id) {
-    if (
-      !window.confirm(
-        '¿Borrar esta foto de Mis recuerdos y de las páginas que la usan?'
-      )
-    ) {
-      return
-    }
+  const confirmed = window.confirm(
+    `¿Eliminar ${selectedLibraryIds.length} foto(s) de Mis recuerdos y de las páginas que las usan?`
+  )
 
-    setMemories((previous) =>
-      previous.filter((memory) => memory.id !== id)
-    )
+  if (!confirmed) return
 
-    setBookPages((previous) =>
-      previous.map((page) => ({
-        ...page,
-        slots: page.slots.map((slot) =>
-          slot.memoryId === id
-            ? { memoryId: null, transform: {} }
-            : slot
-        ),
-      }))
-    )
-  }
+  const idsToRemove = new Set(selectedLibraryIds)
+
+  setMemories((previous) =>
+    previous.filter((memory) => !idsToRemove.has(memory.id))
+  )
+
+  setBookPages((previous) =>
+    previous.map((page) => ({
+      ...page,
+      slots: page.slots.map((slot) =>
+        idsToRemove.has(slot.memoryId)
+          ? { memoryId: null, transform: {} }
+          : slot
+      ),
+    }))
+  )
+
+  setSelectedLibraryIds([])
+  setSelectingMemories(false)
+}
 
   async function download() {
     if (exporting) return
@@ -383,46 +408,89 @@ export default function App() {
         </button>
       </section>
 
-      <section>
-        <h2>Mis recuerdos</h2>
+<section>
+  <div className="memories-toolbar">
+    <h2>Mis recuerdos</h2>
 
-        {memories.length === 0 ? (
-          <p>
-            Agregá fotos y después elegilas dentro
-            de cada página.
-          </p>
-        ) : (
-          <div className="book-library">
-            {memories.map((memory) => (
-              <figure key={memory.id}>
-                <img
-                  src={memory.image}
-                  alt={
-                    memory.caption ||
-                    'Recuerdo de la promo'
-                  }
-                />
-
-                {memory.caption && (
-                  <figcaption>
-                    {memory.caption}
-                  </figcaption>
-                )}
-
-                <button
-                  type="button"
-                  disabled={exporting}
-                  onClick={() =>
-                    removeMemory(memory.id)
-                  }
-                >
-                  Borrar de Mis recuerdos
-                </button>
-              </figure>
-            ))}
-          </div>
+    {memories.length > 0 && (
+      <div className="memories-tools">
+        {selectingMemories && (
+          <button
+            type="button"
+            className="memories-delete"
+            disabled={exporting || selectedLibraryIds.length === 0}
+            onClick={removeSelectedMemories}
+            aria-label={`Eliminar ${selectedLibraryIds.length} fotos seleccionadas`}
+            title="Eliminar seleccionadas"
+          >
+            <TrashIcon />
+            <span>{selectedLibraryIds.length}</span>
+          </button>
         )}
-      </section>
+
+        <button
+          type="button"
+          className="memories-select"
+          disabled={exporting}
+          aria-pressed={selectingMemories}
+          onClick={() => {
+            setSelectingMemories((previous) => !previous)
+            setSelectedLibraryIds([])
+          }}
+        >
+          {selectingMemories ? 'Cancelar' : 'Seleccionar'}
+        </button>
+      </div>
+    )}
+  </div>
+
+  {memories.length === 0 ? (
+    <p>
+      Agregá fotos y después elegilas dentro de cada página.
+    </p>
+  ) : (
+    <div className="book-library">
+      {memories.map((memory) => (
+        <figure
+          key={memory.id}
+          className="memory-card"
+          data-selected={selectedLibraryIds.includes(memory.id)}
+        >
+          {selectingMemories && (
+            <label className="memory-check">
+              <input
+                type="checkbox"
+                disabled={exporting}
+                checked={selectedLibraryIds.includes(memory.id)}
+                aria-label={`Seleccionar ${
+                  memory.caption || 'foto de la promo'
+                }`}
+                onChange={(event) => {
+                  const checked = event.target.checked
+
+                  setSelectedLibraryIds((previous) =>
+                    checked
+                      ? [...previous, memory.id]
+                      : previous.filter((id) => id !== memory.id)
+                  )
+                }}
+              />
+            </label>
+          )}
+
+          <img
+            src={memory.image}
+            alt={memory.caption || 'Recuerdo de la promo'}
+          />
+
+          {memory.caption && (
+            <figcaption>{memory.caption}</figcaption>
+          )}
+        </figure>
+      ))}
+    </div>
+  )}
+</section>
 
       {showBook && (
         <div ref={editorRef}>
@@ -439,6 +507,10 @@ export default function App() {
             isExporting={exporting}
             onDownload={download}
             onClose={() => setShowBook(false)}
+            backStickers={backStickers}
+            setBackStickers={setBackStickers}
+            backStickers={backStickers}
+            setBackStickers={setBackStickers}
           />
         </div>
       )}
@@ -452,6 +524,7 @@ export default function App() {
           coverStickers={coverStickers}
           coverNote={coverNote}
           pageWidth={exportWidth}
+          backStickers={backStickers}
         />
       )}
     </main>

@@ -1,7 +1,7 @@
-export default function PhotobookCover({ note, children }) {
+export default function PhotobookBackCover({ children }) {
   return (
     <div
-      className="photobook-cover scrapbook-cover batik-cover batik-front"
+      className="photobook-cover photobook-back-cover batik-cover batik-back"
       data-pdf-page
     >
       <div className="batik-school">
@@ -16,22 +16,23 @@ export default function PhotobookCover({ note, children }) {
         />
       </div>
 
-      <div className="batik-project">
-        <h2>Archivo 26</h2>
-
-        <p className="batik-note">
-          {note ?? 'Nuestro último año, en recuerdos.'}
-        </p>
-
-        <span className="batik-underline" aria-hidden="true" />
-      </div>
-
       <img
         className="batik-logo"
         src="/marca/logo-literatura.jpg"
         alt="Logo de Literatura de la promo"
         draggable={false}
       />
+
+      <div className="batik-footer">
+        <p className="batik-signature">Promo 2026</p>
+
+        <img
+          className="batik-location"
+          src="/stickers/promo/olavarria.png"
+          alt="Olavarría"
+          draggable={false}
+        />
+      </div>
 
       {children}
     </div>

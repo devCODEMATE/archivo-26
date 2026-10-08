@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import PhotobookCover from './PhotobookCover'
+import PhotobookBackCover from './PhotobookBackCover'
 import BookPage from './BookPage'
 import EditableItem, { TrashIcon } from './EditableItem'
 import { stickerCatalog, stickerCategories } from '../stickers/catalog'
+import { createId } from '../utils/createId'
 
 const options = [
   ...stickerCatalog,
@@ -47,6 +49,8 @@ export default function BookEditor({
   setBookPages,
   coverStickers,
   setCoverStickers,
+  backStickers = [],
+  setBackStickers,
   bookFormat,
   setBookFormat,
   coverNote,
@@ -58,26 +62,45 @@ export default function BookEditor({
   const [position, setPosition] = useState(0)
   const [selected, setSelected] = useState(null)
   const [choosing, setChoosing] = useState(null)
-  const [adding, setAdding] = useState(false)
   const [category, setCategory] = useState(
     stickerCategories[0]?.id
   )
 
   const chooserRef = useRef(null)
-  const pageIndex = Math.min(position, bookPages.length)
-  const page = bookPages[pageIndex - 1]
+
+  const lastPage = bookPages.length + 1
+  const pageIndex = Math.min(position, lastPage)
+  const isBackCover = pageIndex === lastPage
+
+  const page =
+    pageIndex > 0 && !isBackCover
+      ? bookPages[pageIndex - 1]
+      : null
 
   const stickers =
-    pageIndex === 0 ? coverStickers : page.stickers || []
+    pageIndex === 0
+      ? coverStickers
+      : isBackCover
+        ? backStickers
+        : page?.stickers || []
 
   const active =
     selected?.type === 'sticker'
       ? stickers.find((item) => item.id === selected.id)
-      : selected?.type === 'photo'
-        ? page?.slots[selected.index]?.transform || {}
+      : selected?.type === 'photo' &&
+          page?.slots[selected.index]?.memoryId
+        ? page.slots[selected.index].transform || {}
         : null
 
+  function navigate(next) {
+    setPosition(Math.max(0, Math.min(next, lastPage)))
+    setSelected(null)
+    setChoosing(null)
+  }
+
   function changePage(updater) {
+    if (!page) return
+
     setBookPages((previous) =>
       previous.map((item) =>
         item.id === page.id ? updater(item) : item
@@ -88,6 +111,8 @@ export default function BookEditor({
   function changeStickers(updater) {
     if (pageIndex === 0) {
       setCoverStickers(updater)
+    } else if (isBackCover) {
+      setBackStickers(updater)
     } else {
       changePage((item) => ({
         ...item,
@@ -117,9 +142,7 @@ export default function BookEditor({
     setChoosing(index)
     setSelected(null)
 
-    requestAnimationFrame(() =>
-      chooserRef.current?.focus()
-    )
+    requestAnimationFrame(() => chooserRef.current?.focus())
   }
 
   function layout(count) {
@@ -139,30 +162,24 @@ export default function BookEditor({
     setChoosing(null)
   }
 
-  function addPage(count) {
-    setBookPages((previous) => [
-      ...previous,
-      {
-        id: crypto.randomUUID(),
-        slots: Array.from({ length: count }, () => ({
+  function addPage() {
+    if (isExporting) return
+
+    const newPage = {
+      id: createId(),
+      slots: [
+        {
           memoryId: null,
           transform: {},
-        })),
-        stickers: [],
-      },
-    ])
+        },
+      ],
+      stickers: [],
+    }
 
+    setBookPages((previous) => [...previous, newPage])
     setPosition(bookPages.length + 1)
     setSelected(null)
-    setAdding(false)
     setChoosing(null)
-  }
-
-  function navigate(next) {
-    setPosition(next)
-    setSelected(null)
-    setChoosing(null)
-    setAdding(false)
   }
 
   function removePhoto(index) {
@@ -176,6 +193,81 @@ export default function BookEditor({
     }))
 
     setSelected(null)
+  }
+
+  function reorderPage(direction) {
+    if (!page) return
+
+    const target = pageIndex - 1 + direction
+
+    if (target < 0 || target >= bookPages.length) return
+
+    setBookPages((previous) => {
+      const index = previous.findIndex(
+        (item) => item.id === page.id
+      )
+
+      const next = index + direction
+
+      if (
+        index < 0 ||
+        next < 0 ||
+        next >= previous.length
+      ) {
+        return previous
+      }
+
+      const updated = [...previous]
+
+      ;[updated[index], updated[next]] = [
+        updated[next],
+        updated[index],
+      ]
+
+      return updated
+    })
+
+    navigate(pageIndex + direction)
+  }
+
+  function deletePage() {
+    if (!page) return
+
+    if (
+      !window.confirm(
+        '¿Eliminar esta página? Tus fotos seguirán en Mis recuerdos.'
+      )
+    ) {
+      return
+    }
+
+    setBookPages((previous) =>
+      previous.filter((item) => item.id !== page.id)
+    )
+
+    navigate(Math.max(0, pageIndex - 1))
+  }
+
+  function addSticker(option) {
+    if (isExporting || stickers.length >= 10) return
+
+    const sticker = {
+      ...option,
+      id: createId(),
+      x: 10 + (stickers.length % 3) * 12,
+      y: 10 + (Math.floor(stickers.length / 3) % 3) * 12,
+    }
+
+    changeStickers((previous) =>
+      previous.length >= 10
+        ? previous
+        : [...previous, sticker]
+    )
+
+    setSelected({
+      type: 'sticker',
+      id: sticker.id,
+    })
   }
 
   function stickerLayer() {
@@ -206,10 +298,9 @@ export default function BookEditor({
             }
             onRemove={() => {
               changeStickers((previous) =>
-                previous.filter(
-                  (old) => old.id !== item.id
-                )
+                previous.filter((old) => old.id !== item.id)
               )
+
               setSelected(null)
             }}
           />
@@ -219,9 +310,11 @@ export default function BookEditor({
   }
 
   function precise(changes) {
+    if (!selected) return
+
     if (selected.type === 'photo') {
       changePhoto(selected.index, changes)
-    } else {
+    } else if (selected.type === 'sticker') {
       changeStickers((previous) =>
         previous.map((old) =>
           old.id === selected.id
@@ -234,7 +327,7 @@ export default function BookEditor({
 
   const visible = options.filter((item) =>
     stickerCategories
-      .find((c) => c.id === category)
+      .find((entry) => entry.id === category)
       ?.stickerIds.includes(item.id)
   )
 
@@ -270,26 +363,14 @@ export default function BookEditor({
             </select>
           </label>
 
-          <button
-            type="button"
-            onClick={() => setAdding(!adding)}
-          >
+          <button type="button" onClick={addPage}>
             ＋ Agregar página
           </button>
         </div>
 
-        {adding && (
-          <div className="book-panel">
-            <p>
-              ¿Cuántas fotos tendrá la página nueva?
-            </p>
-            <LayoutChoices onChange={addPage} />
-          </div>
-        )}
-
         {page && (
           <div className="book-panel">
-            <p>Distribución de esta página</p>
+            <p>¿Cuántas fotos querés en esta página?</p>
 
             <LayoutChoices
               value={page.slots.length}
@@ -297,8 +378,8 @@ export default function BookEditor({
             />
 
             <small>
-              Si reducís los espacios, las fotos
-              retiradas siguen en Mis recuerdos.
+              Si reducís los espacios, las fotos retiradas
+              siguen en Mis recuerdos.
             </small>
           </div>
         )}
@@ -312,6 +393,10 @@ export default function BookEditor({
           <PhotobookCover note={coverNote}>
             {stickerLayer()}
           </PhotobookCover>
+        ) : isBackCover ? (
+          <PhotobookBackCover>
+            {stickerLayer()}
+          </PhotobookBackCover>
         ) : (
           <BookPage
             page={page}
@@ -326,7 +411,7 @@ export default function BookEditor({
           </BookPage>
         )}
 
-        {choosing !== null && (
+        {choosing !== null && page && (
           <div
             ref={chooserRef}
             tabIndex={-1}
@@ -342,27 +427,24 @@ export default function BookEditor({
             </button>
 
             {memories.length === 0 && (
-              <p>
-                Primero agregá fotos a Mis recuerdos.
-              </p>
+              <p>Primero agregá fotos a Mis recuerdos.</p>
             )}
 
             <div className="book-photo-options">
               {memories.map((memory) => (
                 <button
-                  type="button"
                   key={memory.id}
+                  type="button"
                   onClick={() => {
                     changePage((item) => ({
                       ...item,
-                      slots: item.slots.map(
-                        (slot, index) =>
-                          index === choosing
-                            ? {
-                                memoryId: memory.id,
-                                transform: {},
-                              }
-                            : slot
+                      slots: item.slots.map((slot, index) =>
+                        index === choosing
+                          ? {
+                              memoryId: memory.id,
+                              transform: {},
+                            }
+                          : slot
                       ),
                     }))
 
@@ -370,19 +452,19 @@ export default function BookEditor({
                       type: 'photo',
                       index: choosing,
                     })
+
                     setChoosing(null)
                   }}
                 >
                   <img
                     src={memory.image}
                     alt={
-                      memory.caption ||
-                      'Foto sin descripción'
+                      memory.caption || 'Foto sin descripción'
                     }
                   />
+
                   <span>
-                    {memory.caption ||
-                      'Sin descripción'}
+                    {memory.caption || 'Sin descripción'}
                   </span>
                 </button>
               ))}
@@ -393,6 +475,7 @@ export default function BookEditor({
         {pageIndex === 0 && (
           <label className="book-cover-label">
             Tu frase para la portada
+
             <textarea
               value={coverNote}
               maxLength={100}
@@ -438,6 +521,7 @@ export default function BookEditor({
             ].map(([key, label, min, max, fallback]) => (
               <label key={key}>
                 {label}
+
                 <input
                   type="range"
                   min={min}
@@ -462,8 +546,8 @@ export default function BookEditor({
           <div className="sticker-categories">
             {stickerCategories.map((item) => (
               <button
-                type="button"
                 key={item.id}
+                type="button"
                 aria-pressed={item.id === category}
                 onClick={() => setCategory(item.id)}
               >
@@ -475,29 +559,11 @@ export default function BookEditor({
           <div className="book-sticker-options">
             {visible.map((option) => (
               <button
-                type="button"
                 key={option.id}
+                type="button"
                 disabled={stickers.length >= 10}
                 aria-label={`Agregar ${option.label}`}
-                onClick={() => {
-                  const sticker = {
-                    ...option,
-                    id: crypto.randomUUID(),
-                    x: 10,
-                    y: 10,
-                  }
-
-                  changeStickers((previous) =>
-                    previous.length >= 10
-                      ? previous
-                      : [...previous, sticker]
-                  )
-
-                  setSelected({
-                    type: 'sticker',
-                    id: sticker.id,
-                  })
-                }}
+                onClick={() => addSticker(option)}
               >
                 {option.src ? (
                   <img src={option.src} alt="" />
@@ -521,12 +587,14 @@ export default function BookEditor({
           <p aria-live="polite">
             {pageIndex === 0
               ? 'Portada'
-              : `Página ${pageIndex} de ${bookPages.length}`}
+              : isBackCover
+                ? 'Contratapa'
+                : `Página ${pageIndex} de ${bookPages.length}`}
           </p>
 
           <button
             type="button"
-            disabled={pageIndex === bookPages.length}
+            disabled={isBackCover}
             onClick={() => navigate(pageIndex + 1)}
           >
             Siguiente
@@ -538,49 +606,15 @@ export default function BookEditor({
             <button
               type="button"
               disabled={pageIndex === 1}
-              onClick={() => {
-                setBookPages((previous) => {
-                  const updated = [...previous]
-
-                  ;[
-                    updated[pageIndex - 2],
-                    updated[pageIndex - 1],
-                  ] = [
-                    updated[pageIndex - 1],
-                    updated[pageIndex - 2],
-                  ]
-
-                  return updated
-                })
-
-                navigate(pageIndex - 1)
-              }}
+              onClick={() => reorderPage(-1)}
             >
               ↑ Página antes
             </button>
 
             <button
               type="button"
-              disabled={
-                pageIndex === bookPages.length
-              }
-              onClick={() => {
-                setBookPages((previous) => {
-                  const updated = [...previous]
-
-                  ;[
-                    updated[pageIndex - 1],
-                    updated[pageIndex],
-                  ] = [
-                    updated[pageIndex],
-                    updated[pageIndex - 1],
-                  ]
-
-                  return updated
-                })
-
-                navigate(pageIndex + 1)
-              }}
+              disabled={pageIndex === bookPages.length}
+              onClick={() => reorderPage(1)}
             >
               ↓ Página después
             </button>
@@ -589,25 +623,7 @@ export default function BookEditor({
               type="button"
               aria-label="Eliminar esta página"
               title="Eliminar página"
-              onClick={() => {
-                if (
-                  !window.confirm(
-                    '¿Eliminar esta página? Tus fotos seguirán en Mis recuerdos.'
-                  )
-                ) {
-                  return
-                }
-
-                setBookPages((previous) =>
-                  previous.filter(
-                    (item) => item.id !== page.id
-                  )
-                )
-
-                navigate(
-                  Math.max(0, pageIndex - 1)
-                )
-              }}
+              onClick={deletePage}
             >
               <TrashIcon />
             </button>
@@ -616,8 +632,8 @@ export default function BookEditor({
 
         {incomplete && (
           <p role="status">
-            Completá los espacios de las páginas
-            para descargar el PDF.
+            Los espacios sin foto quedarán vacíos en el PDF.
+            Podés completar o eliminar las páginas que no quieras.
           </p>
         )}
       </fieldset>
@@ -625,16 +641,10 @@ export default function BookEditor({
       <div className="photobook-actions">
         <button
           type="button"
-          disabled={
-            isExporting ||
-            incomplete ||
-            bookPages.length === 0
-          }
+          disabled={isExporting}
           onClick={onDownload}
         >
-          {isExporting
-            ? 'Preparando PDF…'
-            : 'Descargar PDF'}
+          {isExporting ? 'Preparando PDF…' : 'Descargar PDF'}
         </button>
 
         <button
@@ -648,4 +658,3 @@ export default function BookEditor({
     </section>
   )
 }
-

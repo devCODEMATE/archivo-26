@@ -658,3 +658,161 @@ label[for="photos-per-page"],
   min-height: 44px;
   font: inherit;
 }
+
+.memories-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0 16px;
+}
+
+.memories-toolbar h2 {
+  margin: 0;
+}
+
+.memories-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.memories-tools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #a51e26;
+  border-radius: 12px;
+  font: inherit;
+}
+
+.memories-select {
+  background: #fff8ee;
+  color: #300405;
+}
+
+.memories-delete {
+  background: #a51e26;
+  color: #fff8ee;
+}
+
+.book-library .memory-card {
+  position: relative;
+  min-width: 0;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+}
+
+.book-library .memory-card[data-selected="true"] {
+  border-color: #a51e26;
+  background: #fff8ee;
+}
+
+.memory-check {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-radius: 12px;
+  background: #fff8ee;
+  cursor: pointer;
+}
+
+.memory-check input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  accent-color: #a51e26;
+  cursor: pointer;
+}
+
+.photobook-cover.photobook-back-cover {
+  position: relative;
+  container-type: inline-size;
+  justify-content: space-between;
+  overflow: hidden;
+  background: #300405;
+  color: #f5ebdd;
+  border: 1px solid #a51e26;
+}
+
+.back-cover-school {
+  width: 100%;
+}
+
+.photobook-back-cover .back-cover-school h2 {
+  margin: 0;
+  color: #f5ebdd;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(28px, 9cqw, 64px);
+  line-height: 1;
+}
+
+.photobook-back-cover .back-cover-school p {
+  margin: 8px 0;
+  color: #d8c7af;
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(12px, 3cqw, 20px);
+  letter-spacing: 0.12em;
+}
+
+.back-cover-course {
+  display: block;
+  width: 28%;
+  height: auto;
+  max-height: 70px;
+  margin: 12px auto 0;
+  object-fit: contain;
+}
+
+.back-cover-logo {
+  display: block;
+  width: 52%;
+  height: 30%;
+  min-height: 0;
+  border-radius: 0;
+  object-fit: contain;
+}
+
+.photobook-back-cover .back-cover-footer p {
+  margin: 6px 0;
+  color: #f5ebdd;
+}
+
+.back-cover-footer p:first-child {
+  font-family: 'Caveat', cursive;
+  font-size: clamp(20px, 6cqw, 38px);
+}
+
+.back-cover-footer p:last-child {
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(10px, 2.5cqw, 16px);
+}
+
+.back-cover-star {
+  position: absolute;
+  color: #d8c7af;
+  font-size: clamp(24px, 8cqw, 60px);
+  pointer-events: none;
+}
+
+.back-cover-star-one {
+  left: 8%;
+  top: 42%;
+}
+
+.back-cover-star-two {
+  right: 8%;
+  bottom: 28%;
+}

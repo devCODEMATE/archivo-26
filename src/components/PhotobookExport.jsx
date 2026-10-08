@@ -1,4 +1,5 @@
 import PhotobookCover from './PhotobookCover'
+import PhotobookBackCover from './PhotobookBackCover'
 import BookPage from './BookPage'
 import EditableItem from './EditableItem'
 
@@ -8,10 +9,11 @@ export default function PhotobookExport({
   memories,
   bookPages,
   coverStickers,
+  backStickers = [],
   coverNote,
   pageWidth = 680,
 }) {
-  function stickers(items) {
+  function renderStickers(items = []) {
     return (
       <div className="book-sticker-layer">
         {items.map((item) => (
@@ -40,7 +42,7 @@ export default function PhotobookExport({
       }}
     >
       <PhotobookCover note={coverNote}>
-        {stickers(coverStickers)}
+        {renderStickers(coverStickers)}
       </PhotobookCover>
 
       {bookPages.map((page) => (
@@ -50,9 +52,13 @@ export default function PhotobookExport({
           memories={memories}
           readOnly
         >
-          {stickers(page.stickers || [])}
+          {renderStickers(page.stickers)}
         </BookPage>
       ))}
+
+      <PhotobookBackCover>
+        {renderStickers(backStickers)}
+      </PhotobookBackCover>
     </div>
   )
 }
