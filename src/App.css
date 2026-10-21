@@ -816,3 +816,171 @@ label[for="photos-per-page"],
   right: 8%;
   bottom: 28%;
 }
+
+/* Firma de CodeMate */
+.app-footer {
+  margin-top: 48px;
+  padding: 28px 16px 12px;
+  border-top: 1px solid #dfcbb5;
+  text-align: center;
+}
+
+.app-footer > p:first-child {
+  margin: 0;
+  color: #6f5147;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.app-footer .app-footer-credit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 0;
+  color: #6f5147;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.app-footer-credit span {
+  display: inline-block;
+  padding: 5px 12px;
+  border: 1px solid #dfcbb5;
+  border-radius: 8px;
+  background-color: #fff8ee;
+  color: #a51e26;
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 480px) {
+  .app-footer {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
+
+  .app-footer > p:first-child {
+    font-size: 12px;
+  }
+}
+
+/* Footer: identidad y autoría */
+.app-footer {
+  margin-top: 48px;
+  padding: 24px 0 12px;
+  border-top: 1px solid #dfcbb5;
+  text-align: left;
+}
+
+.footer-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.footer-identity {
+  min-width: 0;
+}
+
+.footer-signature {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.app-footer .footer-brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #a51e26;
+  font-family: monospace;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.app-footer .footer-author {
+  color: #300405;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.app-footer .footer-tagline {
+  margin: 2px 0 0;
+  color: #6f5147;
+  font-size: 13px;
+  font-style: normal;
+  line-height: 1.6;
+}
+
+.footer-socials {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-footer .footer-socials a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #dfcbb5;
+  border-radius: 50%;
+  background: #fff8ee;
+  color: #300405;
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.app-footer .footer-socials a:hover {
+  border-color: #a51e26;
+  background: #a51e26;
+  color: #fff8ee;
+}
+
+.app-footer a:focus-visible {
+  outline: 2px solid #a51e26;
+  outline-offset: 4px;
+}
+
+.app-footer .footer-copyright {
+  margin: 20px 0 0;
+  color: #6f5147;
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .app-footer {
+    margin-top: 32px;
+    padding-top: 20px;
+  }
+
+  .footer-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .app-footer .footer-brand {
+    font-size: 21px;
+  }
+
+  .app-footer .footer-copyright {
+    margin-top: 16px;
+  }
+}
