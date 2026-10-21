@@ -126,13 +126,13 @@ export async function exportPhotobook(container, bookFormat) {
   const host = container.cloneNode(false)
   host.removeAttribute('id')
 
-  Object.assign(host.style, {
-    position: 'fixed',
-    left: '0',
-    top: '0',
-    zIndex: '-1000',
-    pointerEvents: 'none',
-  })
+Object.assign(host.style, {
+  position: 'fixed',
+  left: '-10000px',
+  top: '0',
+  zIndex: '-1000',
+  pointerEvents: 'none',
+})
 
   document.body.appendChild(host)
 
