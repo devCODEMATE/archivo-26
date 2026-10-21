@@ -65,7 +65,7 @@ These screenshots show the current development version. Photos and captions are 
 
 #### Mobile · Home
 
-<img src="docs/images/04-inicio-celular.jpeg" alt="Archivo 26 home on mobile" width="320">
+<img src="docs/images/04-inicio-celular.jpg" alt="Archivo 26 home on mobile" width="320">
 
 #### Mobile · Photobook editor
 
@@ -254,7 +254,7 @@ Estas capturas muestran la versión actual en desarrollo. Las fotos y las descri
 
 #### Celular · Inicio
 
-<img src="docs/images/04-inicio-celular.jpeg" alt="Inicio de Archivo 26 en celular" width="320">
+<img src="docs/images/04-inicio-celular.jpg" alt="Inicio de Archivo 26 en celular" width="320">
 
 #### Celular · Editor del fotolibro
 
