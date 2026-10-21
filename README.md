@@ -49,7 +49,31 @@ Navigation appears at the bottom on mobile and at the top on desktop.
 
 ### Screenshots
 
-These screenshots show a development version using test photos. They will be updated as the project evolves.
+These screenshots show the current development version. Photos and captions are sample content used for testing.
+
+#### Desktop · Home
+
+![Archivo 26 desktop home](docs/images/01-inicio-desktop.png)
+
+#### Desktop · My memories
+
+![Photo library on desktop](docs/images/02-recuerdos-desktop.png)
+
+#### Desktop · Photobook editor
+
+![Photobook editor on desktop](docs/images/03-editor-desktop.png)
+
+#### Mobile · Home
+
+<img src="docs/images/04-inicio-celular.jpeg" alt="Archivo 26 home on mobile" width="320">
+
+#### Mobile · Photobook editor
+
+<img src="docs/images/05-editor-celular.jpeg" alt="Mobile photobook editor with photos, captions and stickers" width="320">
+
+#### Downloaded PDF
+
+<img src="docs/images/06-fotolibro-pdf.jpeg" alt="Downloaded photobook PDF open on a phone" width="320">
 
 #### Desktop home
 
@@ -212,33 +236,33 @@ El proyecto combina fotografía, diseño visual y desarrollo frontend para conse
 - Elegir formato A4 o A5 y descargar el fotolibro en PDF.
 - Recuperar el borrador al recargar la página en el mismo navegador y dispositivo.
 
-### Pantallas
+### Capturas de pantalla
 
-**Inicio**
+Estas capturas muestran la versión actual en desarrollo. Las fotos y las descripciones son contenido de prueba.
 
-Presentación del proyecto y accesos a la carga de fotos, la galería y el fotolibro.
+#### Escritorio · Inicio
 
-**Mis recuerdos**
+![Inicio de Archivo 26 en escritorio](docs/images/01-inicio-desktop.png)
 
-Galería de fotos con descripciones y controles de selección. Las nuevas fotos se agregan desde un panel con vista previa e información de compresión.
+#### Escritorio · Mis recuerdos
 
-**Mi fotolibro**
+![Galería de recuerdos en escritorio](docs/images/02-recuerdos-desktop.png)
 
-Editor con una página visible por vez, distribución de fotos, stickers, controles de edición y descarga del PDF.
+#### Escritorio · Editor del fotolibro
 
-La navegación aparece abajo en celular y arriba en desktop.
+![Editor del fotolibro en escritorio](docs/images/03-editor-desktop.png)
 
-### Capturas
+#### Celular · Inicio
 
-Estas imágenes muestran una versión en desarrollo con fotos de prueba. Se actualizarán a medida que avance el proyecto.
+<img src="docs/images/04-inicio-celular.jpeg" alt="Inicio de Archivo 26 en celular" width="320">
 
-#### Inicio en desktop
+#### Celular · Editor del fotolibro
 
-![Pantalla de inicio de Archivo 26 en desktop](docs/images/01-inicio-desktop.png)
+<img src="docs/images/05-editor-celular.jpeg" alt="Editor en celular con fotos, descripciones y stickers" width="320">
 
-#### Mis recuerdos
+#### PDF descargado
 
-![Galería con imágenes de prueba](docs/images/02-recuerdos-desktop.png)
+<img src="docs/images/06-fotolibro-pdf.jpeg" alt="PDF del fotolibro descargado y abierto en un celular" width="320">
 
 ### Tecnologías
 
